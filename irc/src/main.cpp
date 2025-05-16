@@ -33,6 +33,7 @@ int main(int argc, char* argv[]) {
         std::cerr << RED << "Usage: " << argv[0] << " <port> <password>" << RESET << std::endl;
         return 1;
     }
+    
     int port;
     std::string password;
     try {

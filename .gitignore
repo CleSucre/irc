@@ -5,3 +5,8 @@
 # MacOS
 
 .DS_Store
+
+# Compiled
+
+./irc/ircserv
+./irc/objs/
