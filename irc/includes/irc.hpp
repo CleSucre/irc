@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include "colors.h"
+#include "Server.hpp"
 
 #define PASSWORD_MIN_LENGTH 1
 #define PASSWORD_MAX_LENGTH 64

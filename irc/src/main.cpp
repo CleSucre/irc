@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
         std::cerr << RED << "Usage: " << argv[0] << " <port> <password>" << RESET << std::endl;
         return 1;
     }
-    
+
     int port;
     std::string password;
     try {
@@ -44,10 +44,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    
-    std::cout << GREEN << "Starting IRC server on port " << YELLOW
-        << port << GREEN << " using password " << YELLOW
-        << password << GREEN << "..." << RESET << std::endl;
-    //TODO: start irc server HERE
+    Server server(port, password);
+    server.start();
     return 0;
 }
