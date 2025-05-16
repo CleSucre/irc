@@ -28,6 +28,9 @@ class Server {
         bool bindSocket();
         bool listenSocket();
 
+        void resetReadFds(fd_set& read_fds, int& max_fd);
+        bool processFds(fd_set read_fds, int max_fd);
+
         bool addClient(Client* client);
     public:
         Server(int port, const std::string& password);
