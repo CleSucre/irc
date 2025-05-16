@@ -20,4 +20,3 @@
  * 		recv (client_fd, client->buffer, sizeof(client->buffer), 0)
  * 		
  * }
- */
