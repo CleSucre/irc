@@ -10,7 +10,9 @@ SRC_DIR = src
 OBJ_DIR = objs
 INC_DIR = includes
 
-SRCS	= main.cpp server/Server.cpp
+SRCS	= main.cpp \
+			server/Server.cpp server/PacketHandler.cpp \
+			client/Client.cpp
 
 SRCS	:= $(addprefix $(SRC_DIR)/, $(SRCS))
 

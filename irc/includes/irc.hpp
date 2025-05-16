@@ -1,10 +1,8 @@
 #ifndef IRC_HPP
 #define IRC_HPP
 
-#include <iostream>
 #include <sstream>
 #include <string>
-#include "colors.h"
 #include "Server.hpp"
 
 #define PASSWORD_MIN_LENGTH 1
