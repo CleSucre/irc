@@ -1,0 +1,11 @@
+services:
+  irc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./irc:/app
+    ports:
+      - "6667:6667"
+    tty: true
+    working_dir: /app
