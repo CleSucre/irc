@@ -8,5 +8,5 @@
 
 # Compiled
 
-./irc/ircserv
-./irc/objs/
+irc/ircserv
+irc/objs/

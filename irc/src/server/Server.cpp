@@ -5,10 +5,20 @@ Server::Server(int port, const std::string& password) : _port(port), _password(p
         _clients[i] = NULL;
     }
     _server_fd = -1;
-    _running = false;
 }
 
-Server::~Server() {}
+Server::~Server() {
+    for (int i = 0; i < MAX_CLIENTS; ++i) {
+        if (_clients[i]) {
+            close(_clients[i]->getFd());
+            delete _clients[i];
+            _clients[i] = NULL;
+        }
+    }
+    if (_server_fd != -1) {
+        close(_server_fd);
+    }
+}
 
 /**
  * @brief Initializes the server socket
@@ -19,7 +29,7 @@ bool Server::setupSocket() {
     _server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (_server_fd == -1) {
         std::cerr << "Failed to create socket" << std::endl;
-        return 0;
+        return false;
     }
 
     int opt = 1;
@@ -78,6 +88,64 @@ bool Server::addClient(Client* client) {
 }
 
 /**
+ * @brief Resets the file descriptor set for select
+ * 
+ * @param read_fds The file descriptor set to reset
+ * @param max_fd The maximum file descriptor in the set
+ */
+void Server::resetReadFds(fd_set& read_fds, int& max_fd) {
+    FD_ZERO(&read_fds);
+    FD_SET(_server_fd, &read_fds);
+    max_fd = _server_fd;
+
+    for (int i = 0; i < MAX_CLIENTS; ++i) {
+        if (_clients[i]) {
+            int fd = _clients[i]->getFd();
+            FD_SET(fd, &read_fds);
+            if (fd > max_fd) {
+                max_fd = fd;
+            }
+        }
+    }
+}
+
+/**
+ * @brief Processes the file descriptors for incoming connections and messages
+ * 
+ * @param read_fds The file descriptor set to process
+ * @param max_fd The maximum file descriptor in the set
+ * 
+ * @return bool true on success, false on failure
+ */
+bool Server::processFds(fd_set read_fds, int max_fd) {
+    if (select(max_fd + 1, &read_fds, NULL, NULL, NULL) == -1) {
+        std::cerr << "select() failed" << std::endl;
+        return false;
+    }
+
+    if (FD_ISSET(_server_fd, &read_fds)) {
+        int client_fd = accept(_server_fd, NULL, NULL);
+        if (client_fd != -1) {
+            Client* client = new Client(this, client_fd);
+            if (!addClient(client)) {
+                close(client_fd);
+            }
+        }
+    }
+
+    for (int i = 0; i < MAX_CLIENTS; ++i) {
+        if (_clients[i] && FD_ISSET(_clients[i]->getFd(), &read_fds)) {
+            if (!_clients[i]->listen()) {
+                close(_clients[i]->getFd());
+                delete _clients[i];
+                _clients[i] = NULL;
+            }
+        }
+    }
+    return true;
+}
+
+/**
  * @brief Starts the IRC server and begins listening for clients
  */
 void Server::start() {
@@ -102,43 +170,11 @@ void Server::start() {
     int max_fd;
 
     while (_running) {
-        FD_ZERO(&read_fds);
-        FD_SET(_server_fd, &read_fds);
-        max_fd = _server_fd;
+        resetReadFds(read_fds, max_fd);
 
-        for (int i = 0; i < MAX_CLIENTS; ++i) {
-            if (_clients[i]) {
-                int fd = _clients[i]->getFd();
-                FD_SET(fd, &read_fds);
-                if (fd > max_fd) {
-                    max_fd = fd;
-                }
-            }
-        }
-
-        if (select(max_fd + 1, &read_fds, NULL, NULL, NULL) == -1) {
-            std::cerr << "select() failed" << std::endl;
+        if (!processFds(read_fds, max_fd)) {
+            std::cerr << RED << "Error processing file descriptors" << RESET << std::endl;
             break;
-        }
-
-        if (FD_ISSET(_server_fd, &read_fds)) {
-            int client_fd = accept(_server_fd, NULL, NULL);
-            if (client_fd != -1) {
-                Client* client = new Client(this, client_fd);
-                if (!addClient(client)) {
-                    close(client_fd);
-                }
-            }
-        }
-
-        for (int i = 0; i < MAX_CLIENTS; ++i) {
-            if (_clients[i] && FD_ISSET(_clients[i]->getFd(), &read_fds)) {
-                if (!_clients[i]->listen()) {
-                    close(_clients[i]->getFd());
-                    delete _clients[i];
-                    _clients[i] = NULL;
-                }
-            }
         }
     }
 
