@@ -15,6 +15,7 @@ class Server;
 class Client {
     private:
         Server *_server;
+        std::string _buff;
         int _fd;
 
     public:

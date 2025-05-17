@@ -8,8 +8,15 @@ int Client::getFd() const {
     return _fd;
 }
 
+//==========================================
+
+//==========================================
+
+
 /**
  * @brief Listens for incoming messages from the client
+ *        Read them on a temporary char[BUFFER_SIZE]
+ * 		  If bytes > 0, stock them in client->buffer and search for a "\n" 
  * 
  * @return bool true if the client is still connected, false otherwise
  */
@@ -22,6 +29,13 @@ bool Client::listen() {
         return false;
     }
     buffer[bytes_read] = '\0';
-    packetRecieption(*this, std::string(buffer));
+
+    _buff.append(buffer);
+    size_t pos;
+    while ((pos = _buff.find("\r\n")) != std::string::npos) {
+        std::string arg = _buff.substr(0, pos);
+        _buff.erase(0, pos + 2);
+        packetRecieption(*this, arg);
+    }
     return true;
 }
