@@ -12,10 +12,18 @@
 
 class Server;
 
+struct identification
+{
+    std::string Nickname;
+    std::string Username;
+    bool certify;
+};
+
 class Client {
     private:
         Server *_server;
         std::string _buff;
+        identification _id;
         int _fd;
 
     public:
@@ -23,7 +31,11 @@ class Client {
         ~Client();
 
         int getFd() const;
+        void setNick(const std::string &);
+        bool setUser(const std::string &);
         bool listen();
+        bool checkIdentification();
+        bool go_command(std::string arg);
 };
 
 void packetRecieption(const Client& client, const std::string& packet);
