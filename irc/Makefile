@@ -2,6 +2,7 @@ NAME	= ircserv
 
 CXX	= c++
 CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -Iincludes -g
+LDLIBS		= -lssl -lcrypto
 
 RM		= rm -f
 RMDIR	= rm -rf
@@ -21,7 +22,7 @@ OBJ		= $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 DIRS	= $(sort $(dir $(OBJ)))
 
 $(NAME): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME)
+	$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME) $(LDLIBS)
 
 $(DIRS):
 	mkdir -p $@
