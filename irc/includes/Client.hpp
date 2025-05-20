@@ -6,6 +6,8 @@
 #include <cstring>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include "colors.h"
 
 #define BUFFER_SIZE 1024
@@ -16,12 +18,15 @@ class Client {
     private:
         Server *_server;
         int _fd;
+        SSL* _ssl;
 
     public:
-        Client(Server *server, int fd);
+        Client(Server *server, int fd, SSL* ssl);
         ~Client();
 
         int getFd() const;
+        Server* getServer() const;
+        bool isSSL() const;
         bool listen();
 };
 
