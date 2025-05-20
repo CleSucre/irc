@@ -1,7 +1,6 @@
-/* made by tao_la_puissance (dev trainee)*/
+/* made by tao_la_puissance (dev trainee) */
 
 #include "Channel.hpp"
-
 
 Channel::Channel(std::string n) : _name(n) {
 	std::fill(_mode, _mode + 5, false);
@@ -60,16 +59,11 @@ bool Channel::addAdmin(Client* client) {
 		return false;
 
 	for (std::vector<std::pair<Client*, int> >::iterator it = _user.begin(); it != _user.end(); ++it) {
-		if (it->first == client) {
-			if (it->second != user)
-				return false;
-			it->second = admin;
-			return true;
-		}
+		if (it->second != user)
+			return false;
 	}
 
 	return false;
-	// _user.push_back(std::make_pair(client, admin)); // normalement inutile(je laisse je suis parano)
 }
 
 std::vector<Client *> Channel::getUser() {
@@ -86,14 +80,10 @@ bool Channel::addUser(Client* client) {
 	if (!client)
 		return false;
 
-	std::string clientName = client->getName();
 	for (std::vector<std::pair<Client*, int> >::iterator it = _user.begin(); it != _user.end(); ++it) {
-		if (clientName == it->first->getName()) {
-			if (it->first == client ) {
-				it->second = user;
-				return true;
-			}
-			return false; // erreur name deja present
+		if (it->first == client) {
+			it->second = user;
+			return true;
 		}
 	}
 
@@ -116,26 +106,50 @@ bool Channel::addGuess(Client *client) {
 	if (!client)
 		return false;
 
-	std::string clientName = client->getName();
 	for (std::vector<std::pair<Client*, int> >::iterator it = _user.begin(); it != _user.end(); ++it) {
-		if (clientName == it->first->getName())
-			return false; // erreur name deja present
+		if (it->first == client)
+			return false;
 	}
 
 	_user.push_back(std::make_pair(client, guess));
 	return true;
 }
 
-void Channel::kickUser(Client* client) {
+bool Channel::kickUser(Client* client, Client* toKick) {
+	if (!client || !toKick || client == toKick)
+		return false;
+
+	std::vector<std::pair<Client*, int> >::iterator itToKick = _user.end();
+	std::vector<std::pair<Client*, int> >::iterator itClient = _user.end();
 	for (std::vector<std::pair<Client*, int> >::iterator it = _user.begin(); it != _user.end(); ++it) {
-		if (it->first == client) {
-			_user.erase(it);
-			break;
-		}
+		if (it->first == toKick)
+			itToKick = it;
+		else if (it->first == client)
+			itClient  = it;
 	}
 
-	// :client->getNickname() KICK #channel target :reason
+	if (itToKick != _user.end()) {
+		if (itClient != _user.end()) {
+			if (itClient->second == admin) {
+				_user.erase(itToKick);
+				return true; // :client->getNickname() KICK #channel target :reason
+			} else {
+				return false; // 482 ERR_CHANOPRIVSNEEDED "<channel> :You're not channel operator"
+			}
+		} else {
+			return false; // 442 ERR_NOTONCHANNEL "<channel> :You're not on that channel"
+		}
+
+	}
+	return false; // 441 ERR_USERNOTINCHANNEL "<nick> <channel> :They aren't on that channel"
 }
 
-// bool isMember(Client* client); // test si le client est deja present
-// faire attention a pas renvoyer d'erreur si on essaye d'envoyer une invite a un client qui est deja dans le serveur
+bool Channel::isMember(Client* client) {
+	for (std::vector<std::pair<Client*, int> >::const_iterator it = _user.begin(); it != _user.end(); ++it) {
+		if (it->first == client)
+			return true;
+	}
+	return false;
+} // revoir si j'appose un filtre pour eviter de checker les guess
+
+// question sour l'implementation de la gestion d'erreur dans les methode de channel

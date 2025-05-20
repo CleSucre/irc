@@ -19,7 +19,6 @@
 #define user 1
 #define guess 0
 
-// faire une fonction qui check si le client qui veux rentrer na pas le meme prenom qu'un autre utilisateur (lourd)
 class Channel {
 	private:
 
@@ -56,7 +55,9 @@ class Channel {
 		std::vector<Client *> getGuess();
 		bool addGuess(Client *client);
 
-		void kickUser(Client *client);
+		bool kickUser(Client* client, Client* toKick);
+
+		bool isMember(Client* client);
 };
 
 
