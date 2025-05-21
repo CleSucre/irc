@@ -59,6 +59,16 @@ void Client::setNick(const std::string &name)
 }
 
 /**
+ * @brief Get the NickName of the client
+ * 
+ * @return std::string : NickName
+ */
+std::string Client::getNick() const
+{
+	return _id.Nickname;
+}
+
+/**
  * @brief Set the UserName of the client
  * 
  * @param name : UserName to set
@@ -80,6 +90,16 @@ bool Client::setUser(const std::string &name)
 	_id.Username = name;
 	std::cout << "Client " << _fd << " has is now known as : " << _id.Username << std::endl;
     return (true);
+}
+
+/**
+ * @brief Get the UserName of the client
+ * 
+ * @return std::string : UserName
+ */
+std::string Client::getUser() const
+{
+	return _id.Username;
 }
 
 
@@ -204,4 +224,18 @@ bool Client::listen() {
     }
 	 std::cout << "END :: Here is buff : [" << _buff << "]" << std::endl;
     return true;
+}
+
+/**
+ * @brief Send a message to the client
+ * 
+ * @param message : message to send
+ * @return true if ok, false if error
+ */
+void Client::sendMessage(const std::string& message) {
+	if (_ssl) {
+		SSL_write(_ssl, message.c_str(), message.length());
+	} else {
+		send(_fd, message.c_str(), message.length(), 0);
+	}
 }

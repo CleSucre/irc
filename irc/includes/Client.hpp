@@ -35,15 +35,19 @@ class Client {
 
         int getFd() const;
         void setNick(const std::string &);
+        std::string getNick() const;
         bool setUser(const std::string &);
+        std::string getUser() const;
 
         Server* getServer() const;
         bool isSSL() const;
         bool listen();
         bool checkIdentification();
         bool go_command(std::string arg);
+
+        void sendMessage(const std::string& message);
 };
 
-void packetRecieption(const Client& client, const std::string& packet);
+void packetRecieption(Client& client, const std::string& packet);
 
 #endif // CLIENT_HPP
