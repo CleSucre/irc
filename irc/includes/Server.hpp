@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string.h>
+#include <vector>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -15,6 +16,9 @@
 
 #define MAX_CLIENTS 10
 
+class Channel;
+#include "Channel.hpp"
+
 class Server {
     private:
         int _port;
@@ -24,7 +28,8 @@ class Server {
         struct sockaddr_in _server_addr;
         bool _running;
 
-        Client* _clients[MAX_CLIENTS];
+        std::vector<Client*> _clients;
+        std::vector<Channel*> _channels;
 
         bool setupSSLContext(const char* certFile, const char* keyFile);
         bool setupSocket();
@@ -36,6 +41,11 @@ class Server {
         bool processFds(fd_set read_fds, int max_fd);
 
         bool addClient(Client* client);
+        Client *getClientByName(const std::string& name);
+
+        bool addChannel(Channel* channel);
+        std::vector<Channel*> getAllChannels();
+        Channel *getChannelByName(const std::string& name);
     public:
         Server(int port, const std::string& password, const std::string& certFile, const std::string& keyFile);
         ~Server();
