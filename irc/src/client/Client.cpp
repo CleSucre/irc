@@ -1,6 +1,21 @@
 #include "Client.hpp"
 
-Client::Client(Server *server, int fd, SSL* ssl) : _server(server), _fd(fd), _ssl(ssl) {}
+
+/**
+ * 
+001–099 : messages de statut et d’information pour l’enregistrement
+200–399 : réponses de commandes réussies (par ex. LIST, WHOIS…)
+400–599 : erreurs (ERR_*)
+600–999 : messages de statut et d’information pour les commandes de gestion de réseau
+Que faire a la connexion :
+PASS               # (optionnel, si le serveur n'exige pas de mot de passe, vous pouvez sauter cette ligne)
+NICK MonPseudo
+USER MonIdent 0 * :Mon Nom Réel
+ */
+
+Client::Client(Server *server, int fd, SSL* ssl) : _server(server), _fd(fd), _ssl(ssl) {
+   _id.certify = false;
+}
 
 Client::~Client() {
     if (_ssl) {
@@ -10,6 +25,11 @@ Client::~Client() {
     close(_fd);
 }
 
+/**
+ * @brief Get the file descriptor of the client
+ * 
+ * @return int : file descriptor
+ */
 int Client::getFd() const {
     return _fd;
 }
@@ -23,11 +43,127 @@ bool Client::isSSL() const {
 }
 
 /**
- * @brief Listens for incoming messages from the client
+ * @brief Set the NickName of the client
+ * 		  Do nothing if new NickName is empty
+ * @param name : NickName to set
+ * @return void
+ */
+void Client::setNick(const std::string &name)
+{
+    if (name.length() < 1)
+		return ;
+    //TODO: Check if new NickName isn't already taken in the server and in channels
+	if (_id.Nickname != name)
+		_id.Nickname = name;
+	std::cout << "Client " << _id.Username << " has entered a new NickName : " << _id.Nickname << std::endl;
+}
+
+/**
+ * @brief Set the UserName of the client
  * 
- * @return bool true if the client is still connected, false otherwise
+ * @param name : UserName to set
+ * @return true if ok, false if error
+ */
+bool Client::setUser(const std::string &name)
+{
+	if (name.length() < 1)
+	{
+		std::cerr << "Client " << _id.Username << " has entered a wrong UserName." << std::endl;
+		return (false);
+	}
+	//TODO: Check if new UserName isn't already taken in the server and in channels --- Same function as in Nickname
+	if (_id.certify == true)
+	{
+		std::cerr << "462 ERR_ALREADYREGISTERED :Unauthorized command (already registered) "<< std::endl;
+		return (false);
+	}
+	_id.Username = name;
+	std::cout << "Client " << _fd << " has is now known as : " << _id.Username << std::endl;
+    return (true);
+}
+
+
+//==========================================
+
+//==========================================
+
+/*
+PASS après enregistrement
+Selon RFC 2812, la commande PASS « MUST be sent before any attempt to register the connection is made » ; si elle arrive après l’enregistrement, le serveur renvoie
+
+NICK nouveauPseudo  
+provoque :
+
+une vérification que nouveauPseudo n’est pas déjà pris (sinon ERR_NICKNAMEINUSE 433),
+un changement effectif de votre identifiant visible sur le réseau.
+Si vous ré–émettez NICK avec le même pseudo, le serveur peut tout simplement 
+l’ignorer ou vous renvoyer un RPL_NICKCHANGE, mais n’émettra pas d’erreur « already registered » pour cette commande 
+DataTracker IETF
+.
+
+
+*/
+
+/**
+ * @brief Check if the client is identified and set Nickname and Username if needed
+ * 
+ * @return false if error, true if ok
+ */
+bool Client::checkIdentification()
+{
+	if (_id.certify == false && _buff.find("NICK") == std::string::npos\
+		&& _buff.find("USER") == std::string::npos)
+		return false;
+	if (_buff.find("NICK") != std::string::npos)
+	{
+		setNick(_buff.substr(_buff.find("NICK") + 5));
+		_buff.erase(0, _buff.find("\r\n") + 2);
+	}
+	else if (_buff.find("USER") != std::string::npos)
+	{
+		setUser(_buff.substr(_buff.find("USER") + 5));
+		_buff.erase(0, _buff.find("\r\n") + 2);
+	}
+	if (_id.Username.length() > 0  && _id.Nickname.length() > 0)
+		_id.certify = true;
+    std::cout << "id.certify : " << _id.certify << std::endl;
+	return true;
+}
+/**
+ * @brief Check if the command is valid
+ * @param arg : input command to check
+ * 
+ * @return true if command is valid
+ * @return false if error
+ */
+bool Client::go_command(std::string arg)
+{
+    std::cout << "Here is arg [" << arg << "]" << std::endl;
+	std::string command[4] = {"KICK", "INVITE", "TOPIC", "MODE"};
+	for (int i = 0; i < 4; i++)
+	{
+		if (arg.find(command[i]) != std::string::npos)
+		{
+			std::cout << "Command found : " << command[i] << std::endl;
+			
+			return true;
+		}
+	}
+	std::cout << "Command not found" << std::endl;
+	_buff.erase(0, _buff.size());
+	std::cout << "Error in input : " << arg << std::endl;
+    return false;
+}
+
+/**
+ * @brief Listens for incoming messages from the client
+ *        Read them on a temporary char[BUFFER_SIZE]
+ * 		  If bytes > 0, stock them in client->buffer and search for a "\n" 
+ * 
+ * @return true if ok, false if error
  */
 bool Client::listen() {
+	// Listen for incoming messages from the client inside a buffer
     char buffer[BUFFER_SIZE];
     int bytes_read = 0;
 
@@ -41,7 +177,31 @@ bool Client::listen() {
         std::cerr << "Client disconnected or error" << std::endl;
         return false;
     }
-    buffer[bytes_read] = '\0';
-    std::cout << "Received: " << buffer << std::endl;
+	buffer[bytes_read] = '\0';
+	// Concatenate the buffer to the client's buffer
+	_buff.append(buffer);
+    std::cout << "Here is buff : [" << _buff << "]\n\n" << std::endl; 
+	// Check identification
+	if (checkIdentification() == false)
+    {
+        _buff.erase(0, _buff.size());
+        std::cerr << "out here" << std::endl;
+		return true;
+    }
+	// Check if the buffer contains a complete command
+    size_t pos;
+	std::cout << "Here is buff : [" << _buff << "]" << std::endl;
+    while ((pos = _buff.find("\r\n")) != std::string::npos) {
+		std::cout << "pos : " << pos << std::endl;
+        std::string arg = _buff.substr(0, pos);
+        _buff.erase(0, pos + 2);
+		// Check if the command is valid
+		// TODO: Parse command and send it to person C
+        go_command(arg);
+		// Valid packet received
+        packetRecieption(*this, arg);
+        
+    }
+	 std::cout << "END :: Here is buff : [" << _buff << "]" << std::endl;
     return true;
 }
