@@ -30,7 +30,7 @@ std::string parsePassword(const std::string& password) {
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
-        std::cerr << RED << "Usage: " << argv[0] << " <port> <password>" << RESET << std::endl;
+        std::cerr << RED << "Usage: " << argv[0] << " <port> <password> [cert.pem] [key.pem]" << RESET << std::endl;
         return 1;
     }
 
@@ -44,7 +44,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    Server server(port, password);
+    std::string certFile = argc > 3 ? argv[3] : DEFAULT_CERT_FILE;
+    std::string keyFile = argc > 4 ? argv[4] : DEFAULT_KEY_FILE;
+
+    Server server(port, password, certFile, keyFile);
     server.start();
     return 0;
 }

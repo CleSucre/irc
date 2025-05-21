@@ -6,6 +6,8 @@
 #include <cstring>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include "colors.h"
 
 #define BUFFER_SIZE 1024
@@ -25,14 +27,18 @@ class Client {
         std::string _buff;
         identification _id;
         int _fd;
+        SSL* _ssl;
 
     public:
-        Client(Server *server, int fd);
+        Client(Server *server, int fd, SSL* ssl);
         ~Client();
 
         int getFd() const;
         void setNick(const std::string &);
         bool setUser(const std::string &);
+
+        Server* getServer() const;
+        bool isSSL() const;
         bool listen();
         bool checkIdentification();
         bool go_command(std::string arg);

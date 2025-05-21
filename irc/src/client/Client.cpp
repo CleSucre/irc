@@ -1,5 +1,6 @@
 #include "Client.hpp"
 
+
 /**
  * 
 001–099 : messages de statut et d’information pour l’enregistrement
@@ -12,11 +13,17 @@ NICK MonPseudo
 USER MonIdent 0 * :Mon Nom Réel
  */
 
-Client::Client(Server *server, int fd) : _server(server), _fd(fd) {
-    _id.certify = false;
+Client::Client(Server *server, int fd, SSL* ssl) : _server(server), _fd(fd), _ssl(ssl) {
+   _id.certify = false;
 }
 
-Client::~Client() {}
+Client::~Client() {
+    if (_ssl) {
+        SSL_shutdown(_ssl);
+        SSL_free(_ssl);
+    }
+    close(_fd);
+}
 
 /**
  * @brief Get the file descriptor of the client
@@ -25,6 +32,14 @@ Client::~Client() {}
  */
 int Client::getFd() const {
     return _fd;
+}
+
+Server* Client::getServer() const {
+    return _server;
+}
+
+bool Client::isSSL() const {
+    return _ssl != NULL;
 }
 
 /**
@@ -150,10 +165,16 @@ bool Client::go_command(std::string arg)
 bool Client::listen() {
 	// Listen for incoming messages from the client inside a buffer
     char buffer[BUFFER_SIZE];
-    std::memset(buffer, 0, sizeof(buffer));
-    int bytes_read = recv(_fd, buffer, sizeof(buffer) - 1, 0);
+    int bytes_read = 0;
+
+    if (_ssl) {
+        bytes_read = SSL_read(_ssl, buffer, sizeof(buffer) - 1);
+    } else {
+        bytes_read = recv(_fd, buffer, sizeof(buffer) - 1, 0);
+    }
+
     if (bytes_read <= 0) {
-        std::cerr << RED << "Client " << YELLOW << _fd << RED << " disconnected" << RESET << std::endl;
+        std::cerr << "Client disconnected or error" << std::endl;
         return false;
     }
 	buffer[bytes_read] = '\0';

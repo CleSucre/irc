@@ -1,10 +1,15 @@
 #include "Server.hpp"
 
-Server::Server(int port, const std::string& password) : _port(port), _password(password) {
+Server::Server(int port, const std::string& password, const std::string& certFile, const std::string& keyFile)
+    : _port(port), _password(password), _ssl_ctx(NULL), _server_fd(-1), _running(false) {
     for (int i = 0; i < MAX_CLIENTS; ++i) {
         _clients[i] = NULL;
     }
-    _server_fd = -1;
+
+    if (!setupSSLContext(certFile.c_str(), keyFile.c_str())) {
+        std::cerr << RED << "Failed to setup SSL context" << RESET << std::endl;
+        _ssl_ctx = NULL;
+    }
 }
 
 Server::~Server() {
@@ -18,6 +23,51 @@ Server::~Server() {
     if (_server_fd != -1) {
         close(_server_fd);
     }
+}
+
+/**
+ * @brief Sets up the SSL context
+ * 
+ * @param certFile Path to the certificate file
+ * @param keyFile Path to the key file
+ * 
+ * @return bool true on success, false on failure
+ */
+bool Server::setupSSLContext(const char* certFile, const char* keyFile) {
+    // Vérification existence fichiers
+    if (access(certFile, F_OK) == -1) {
+        std::cerr << RED << "Certificate file not found: " << certFile << RESET << std::endl;
+        return false;
+    }
+    if (access(keyFile, F_OK) == -1) {
+        std::cerr << RED << "Key file not found: " << keyFile << RESET << std::endl;
+        return false;
+    }
+
+    SSL_library_init();
+    OpenSSL_add_all_algorithms();
+    SSL_load_error_strings();
+
+    const SSL_METHOD* method = TLS_server_method();
+    _ssl_ctx = SSL_CTX_new(method);
+    if (!_ssl_ctx) {
+        ERR_print_errors_fp(stderr);
+        return false;
+    }
+
+    if (SSL_CTX_use_certificate_file(_ssl_ctx, certFile, SSL_FILETYPE_PEM) <= 0) {
+        ERR_print_errors_fp(stderr);
+        return false;
+    }
+    if (SSL_CTX_use_PrivateKey_file(_ssl_ctx, keyFile, SSL_FILETYPE_PEM) <= 0) {
+        ERR_print_errors_fp(stderr);
+        return false;
+    }
+    if (!SSL_CTX_check_private_key(_ssl_ctx)) {
+        std::cerr << "Private key does not match the certificate public key" << std::endl;
+        return false;
+    }
+    return true;
 }
 
 /**
@@ -110,6 +160,44 @@ void Server::resetReadFds(fd_set& read_fds, int& max_fd) {
 }
 
 /**
+ * @brief Processes a new client connection
+ * 
+ * @param _server_fd The server file descriptor to accept connections from
+ * 
+ * @return bool true on success, false on failure
+ */
+bool Server::processNewClient(int _server_fd) {
+    int client_fd = accept(_server_fd, NULL, NULL);
+    if (client_fd == -1) {
+        std::cerr << "Accept failed" << std::endl;
+        return false;
+    }
+
+    SSL* ssl = NULL;
+    if (_ssl_ctx != NULL) {
+        ssl = SSL_new(_ssl_ctx);
+        SSL_set_fd(ssl, client_fd);
+        if (SSL_accept(ssl) <= 0) {
+            SSL_free(ssl);
+            ssl = NULL;
+            std::cerr << "SSL handshake failed, accepting as plain connection" << std::endl;
+        }
+    }
+
+    Client* client = new Client(this, client_fd, ssl);
+    if (!addClient(client)) {
+        if (ssl) {
+            SSL_shutdown(ssl);
+            SSL_free(ssl);
+        }
+        delete client;
+        close(client_fd);
+        return false;
+    }
+    return true;
+}
+
+/**
  * @brief Processes the file descriptors for incoming connections and messages
  * 
  * @param read_fds The file descriptor set to process
@@ -124,12 +212,9 @@ bool Server::processFds(fd_set read_fds, int max_fd) {
     }
 
     if (FD_ISSET(_server_fd, &read_fds)) {
-        int client_fd = accept(_server_fd, NULL, NULL);
-        if (client_fd != -1) {
-            Client* client = new Client(this, client_fd);
-            if (!addClient(client)) {
-                close(client_fd);
-            }
+        if (!processNewClient(_server_fd)) {
+            std::cerr << RED << "Failed to process new client" << RESET << std::endl;
+            return false;
         }
     }
 
@@ -149,22 +234,14 @@ bool Server::processFds(fd_set read_fds, int max_fd) {
  * @brief Starts the IRC server and begins listening for clients
  */
 void Server::start() {
-    if (!setupSocket()) {
-        std::cerr << RED << "Failed to setup socket" << RESET << std::endl;
-        return;
-    }
-    if (!bindSocket()) {
-        std::cerr << RED << "Failed to bind socket" << RESET << std::endl;
-        return;
-    }
-    if (!listenSocket()) {
-        std::cerr << RED << "Failed to listen on socket" << RESET << std::endl;
+    if (!setupSocket() || !bindSocket() || !listenSocket()) {
+        std::cerr << RED << "Failed to setup/bind/listen socket" << RESET << std::endl;
         return;
     }
 
     _running = true;
     std::cout << GREEN << "Server started on port " << YELLOW
-            << _port << GREEN << " with password " << YELLOW << _password << RESET << std::endl;
+              << _port << GREEN << " with password " << YELLOW << _password << RESET << std::endl;
 
     fd_set read_fds;
     int max_fd;

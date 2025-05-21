@@ -10,3 +10,7 @@
 
 irc/ircserv
 irc/objs/
+
+# SSL certificates
+
+irc/ssl/

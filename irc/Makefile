@@ -2,6 +2,7 @@ NAME	= ircserv
 
 CXX	= c++
 CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -Iincludes -g
+LDLIBS		= -lssl -lcrypto
 
 RM		= rm -f
 RMDIR	= rm -rf
@@ -12,7 +13,7 @@ INC_DIR = includes
 
 SRCS	= main.cpp \
 			server/Server.cpp server/PacketHandler.cpp \
-			client/Client.cpp
+			client/Client.cpp channel.cpp
 
 SRCS	:= $(addprefix $(SRC_DIR)/, $(SRCS))
 
@@ -21,7 +22,7 @@ OBJ		= $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 DIRS	= $(sort $(dir $(OBJ)))
 
 $(NAME): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME)
+	$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME) $(LDLIBS)
 
 $(DIRS):
 	mkdir -p $@

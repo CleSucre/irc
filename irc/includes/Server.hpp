@@ -8,7 +8,8 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
-
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include "Client.hpp"
 #include "colors.h"
 
@@ -18,22 +19,25 @@ class Server {
     private:
         int _port;
         std::string _password;
+        SSL_CTX* _ssl_ctx;
         int _server_fd;
         struct sockaddr_in _server_addr;
         bool _running;
 
         Client* _clients[MAX_CLIENTS];
 
+        bool setupSSLContext(const char* certFile, const char* keyFile);
         bool setupSocket();
         bool bindSocket();
         bool listenSocket();
 
         void resetReadFds(fd_set& read_fds, int& max_fd);
+        bool processNewClient(int client_fd);
         bool processFds(fd_set read_fds, int max_fd);
 
         bool addClient(Client* client);
     public:
-        Server(int port, const std::string& password);
+        Server(int port, const std::string& password, const std::string& certFile, const std::string& keyFile);
         ~Server();
 
         void start();
