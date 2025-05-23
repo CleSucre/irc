@@ -72,16 +72,12 @@ void Client::setNick(const std::string &name)
  * @return true if ok, false if error
  */
 
-//  USER <username> <hostname> <servername> :<realname>
-// Exemple : 
-// USER test * * :Test User
-// USER guest tolmoon tolsun :Ronnie Reagan
-bool Client::setUser(const std::string &args)
+static bool parsecolon(const std::string &args, std::string::size_type &limit)
 {
 	//Parsing USER command arguments, finding the first ":"
 	// and checking if there are enough parameters
 	// fill a vector with the parameters
-	std::string::size_type limit = args.find(":");
+	limit = args.find(":");
 	if (limit == std::string::npos)
 	{
 		std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
@@ -101,6 +97,38 @@ bool Client::setUser(const std::string &args)
 		std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
 		return (false);
 	}
+	return (true);
+}
+
+//  USER <username> <hostname> <servername> :<realname>
+// Exemple : 
+// USER test * * :Test User
+// USER guest tolmoon tolsun :Ronnie Reagan
+bool Client::setUser(const std::string &args)
+{
+	// //Parsing USER command arguments, finding the first ":"
+	// // and checking if there are enough parameters
+	// // fill a vector with the parameters
+	// std::string::size_type limit = args.find(":");
+	// if (limit == std::string::npos)
+	// {
+	// 	std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
+	// 	return (false);
+	// }
+	// std::string check = args.substr(0, limit);
+	// std::istringstream iss(check);
+	// std::string param;
+	// int count = 0;
+	// std::vector<std::string> tokens;
+	// for (count = 0; iss >> param; count++)
+	// {
+	// 	tokens.push_back(param);
+	// }
+	// if (count < 3)
+	// {
+	// 	std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
+	// 	return (false);
+	// }
 	///// TODO: separate here to parse tokens
 	/**
 	 * fill username with everything between 3thrd count and last one without first occurence en ':'
@@ -115,6 +143,13 @@ bool Client::setUser(const std::string &args)
 
 	 */
 	// Check if username is empty
+	std::string::size_type limit2;
+	// limit2 = args.find(":");
+	if (!parsecolon(args, limit2))
+		return (false);
+	size_t limit;
+	limit = limit2;
+	std::cout << "limit : " << limit << std::endl;
 	std::string username = args.substr(limit, args.length());
 	if (username.length() < 1)
 	{
