@@ -1,5 +1,6 @@
 #include "Client.hpp"
-
+#include <sstream>
+#include <vector>
 
 /**
  * 
@@ -52,6 +53,11 @@ void Client::setNick(const std::string &name)
 {
     if (name.length() < 1)
 		return ;
+	else if (name.length() > 9 || name.find(" ") != std::string::npos)
+	{
+		std::cerr << "Client " << _id.Username << " has entered a wrong NickName." << std::endl;
+		return ;
+	}
     //TODO: Check if new NickName isn't already taken in the server and in channels
 	if (_id.Nickname != name)
 		_id.Nickname = name;
@@ -60,25 +66,69 @@ void Client::setNick(const std::string &name)
 
 /**
  * @brief Set the UserName of the client
- * 
+ * @throw ERR_NEEDMOREPARAMS : Not enough parameters
+ * @throw ERR_ALREADYREGISTERED : Already registered
  * @param name : UserName to set
  * @return true if ok, false if error
  */
-bool Client::setUser(const std::string &name)
+
+//  USER <username> <hostname> <servername> :<realname>
+// Exemple : 
+// USER test * * :Test User
+// USER guest tolmoon tolsun :Ronnie Reagan
+bool Client::setUser(const std::string &args)
 {
-	if (name.length() < 1)
+	//Parsing USER command arguments, finding the first ":"
+	// and checking if there are enough parameters
+	// fill a vector with the parameters
+	std::string::size_type limit = args.find(":");
+	if (limit == std::string::npos)
+	{
+		std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
+		return (false);
+	}
+	std::string check = args.substr(0, limit);
+	std::istringstream iss(check);
+	std::string param;
+	int count = 0;
+	std::vector<std::string> tokens;
+	for (count = 0; iss >> param; count++)
+	{
+		tokens.push_back(param);
+	}
+	if (count < 3)
+	{
+		std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
+		return (false);
+	}
+	///// TODO: separate here to parse tokens
+	/**
+	 * fill username with everything between 3thrd count and last one without first occurence en ':'
+	 * Non-vide : username et realname ne doivent pas être des chaînes vides.
+		Longueur max : typiquement < 9 caractères pour username d’après la RFC,
+		et < 50–100 pour realname (tu peux adapter selon tes limites).
+		username : alphanumériques, tirets (-), etc., pas d’espaces ni de caractères de contrôle. < 9 caractères
+			Pas de : ni de # ni de ,.
+		hostname et servername : format d’hôte (lettres, chiffres, points). <= 255 caractères 
+		realname : peut contenir espaces, mais pas \r/\n.
+		sinon ERR_INVALIDPARAMS
+
+	 */
+	// Check if username is empty
+	std::string username = args.substr(limit, args.length());
+	if (username.length() < 1)
 	{
 		std::cerr << "Client " << _id.Username << " has entered a wrong UserName." << std::endl;
 		return (false);
 	}
 	//TODO: Check if new UserName isn't already taken in the server and in channels --- Same function as in Nickname
-	if (_id.certify == true)
+	if (_id.certify == true || _id.Username.length() > 0)
 	{
 		std::cerr << "462 ERR_ALREADYREGISTERED :Unauthorized command (already registered) "<< std::endl;
 		return (false);
 	}
-	_id.Username = name;
-	std::cout << "Client " << _fd << " has is now known as : " << _id.Username << std::endl;
+	_id.Username = username;
+	std::cout << "Client " << _fd << " is now known as : " << _id.Username << std::endl;
     return (true);
 }
 
@@ -100,8 +150,6 @@ Si vous ré–émettez NICK avec le même pseudo, le serveur peut tout simplemen
 l’ignorer ou vous renvoyer un RPL_NICKCHANGE, mais n’émettra pas d’erreur « already registered » pour cette commande 
 DataTracker IETF
 .
-
-
 */
 
 /**
