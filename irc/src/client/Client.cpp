@@ -51,21 +51,23 @@ bool Client::isSSL() const {
  * @brief Set the NickName of the client
  * 		  Do nothing if new NickName is empty
  * @param name : NickName to set
- * @return void
+ * @return true if ok, false if error
  */
-void Client::setNick(const std::string &name)
+bool Client::setNick(const std::string &name)
 {
     if (name.length() < 1)
-		return ;
+		return false;
 	else if (name.length() > 9 || name.find(" ") != std::string::npos)
 	{
-		std::cerr << "Client " << _id.Username << " has entered a wrong NickName." << std::endl;
-		return ;
+		std::cerr << "Client " << _fd << " has entered a wrong NickName : " << name << std::endl;
+		sendMessage("ERR_INVALIDNICKNAME :Invalid NickName, your Nickname will not change\r\n");
+		return false;
 	}
     //TODO: Check if new NickName isn't already taken in the server and in channels
 	if (_id.Nickname != name)
 		_id.Nickname = name;
 	std::cout << "Client " << _id.Username << " has entered a new NickName : " << _id.Nickname << std::endl;
+	return true;
 }
 
 /**
@@ -78,6 +80,7 @@ std::string Client::getNick() const
 	return _id.Nickname;
 }
 
+/**
  * @brief Parse the username arguments from USER command
  * 			username : 0-9 , (-), etc., no space or controle characters,  < 9 characters
 			No # or ',' '.'
@@ -106,13 +109,13 @@ static bool isValidUsername(const std::string& username) {
  * @return true if ok, false if error
  */
 #
-static bool parsecolon(const std::string &args, std::string *username)
+static bool parsecolon(const std::string &args, std::string *res)
 {
 	std::string::size_type limit;
 	limit = args.find(":");
 	if (limit == std::string::npos)
 	{
-		std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
+		*res = "ERR_NEEDMOREPARAMS :Not enough parameters";
 		return (false);
 	}
 	std::string check = args.substr(0, limit);
@@ -124,19 +127,19 @@ static bool parsecolon(const std::string &args, std::string *username)
 	{
 		if (count == 0 && isValidUsername(param) == false)
 		{
-			std::cerr << "ERR_INVALIDPARAMS :Invalid username" << std::endl;
+			*res = "ERR_INVALIDPARAMS :Invalid username";
 			return (false);
 		}
 		tokens.push_back(param);
 	}
 	if (count < 3)
 	{
-		std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
+		*res = "ERR_NEEDMOREPARAMS :Not enough parameters";
 		return (false);
 	}
 	for(size_t i = 3; i < tokens.size(); i++)
-		(*username).append(tokens[i] + " ");
-	(*username).append(args.substr(limit + 1));
+		(*res).append(tokens[i] + " ");
+	(*res).append(args.substr(limit + 1));
 	return (true);
 }
 
@@ -159,13 +162,20 @@ bool Client::setUser(const std::string &args)
 	//Check if the client is already registered
 	if (_id.certify == true || _id.Username.length() > 0)
 	{
-		std::cerr << "462 ERR_ALREADYREGISTERED :Unauthorized command (already registered) "<< std::endl;
+		sendMessage("462 ERR_ALREADYREGISTERED :Unauthorized command (already registered)\r\n");
+		std::cerr << "Client " << _id.Username << " is already registered." << std::endl;
 		return (false);
 	}
 	std::string username;
-	parsecolon(args, &username);
+	if (parsecolon(args, &username) == false)
+	{
+		std::cerr << "Client " << _fd << " " << username << std::endl;
+		sendMessage(username + "\r\n");
+		return (false);
+	}
 	if (username.length() < 1 || username.length() > 75)
 	{
+		sendMessage("ERR_INVALIDPARAMS :Invalid username\r\n");
 		std::cerr << "Client " << _id.Username << " has entered a wrong UserName." << std::endl;
 		return (false);
 	}
@@ -220,21 +230,33 @@ bool Client::checkIdentification()
 	if (_id.certify == false && _buff.find("NICK") == std::string::npos\
 		&& _buff.find("USER") == std::string::npos)
 	{
-		std::cerr << "ERR_NOTREGISTERED :You have not registered" << std::endl; // TODO: Send this error to the client
+		std::cerr << "Client " << _fd << " is not registered." << std::endl;
+		sendMessage("ERR_NOTREGISTERED :You have not registered\r\n");
 		return false;
 	}
 	if (_buff.find("NICK") != std::string::npos)
 	{
-		setNick(_buff.substr(_buff.find("NICK") + 5));
+		if (setNick(_buff.substr(_buff.find("NICK") + 5)) == false)
+		{
+			_buff.erase(0, _buff.size());
+			return false;
+		}
 		_buff.erase(0, _buff.find("\r\n") + 2);
 	}
 	else if (_buff.find("USER") != std::string::npos)
 	{
-		setUser(_buff.substr(_buff.find("USER") + 5));
+		if (setUser(_buff.substr(_buff.find("USER") + 5)) == false)
+		{
+			_buff.erase(0, _buff.size());
+			return false;
+		}
 		_buff.erase(0, _buff.find("\r\n") + 2);
 	}
 	if (_id.Username.length() > 0  && _id.Nickname.length() > 0)
+	{
 		_id.certify = true;
+		sendMessage("001 RPL_WELCOME :Welcome to the Internet Relay Network " + _id.Nickname);
+	}
 	return true;
 }
 /**
@@ -255,9 +277,9 @@ bool Client::go_command(std::string arg)
 			return true;
 		}
 	}
-	std::cout << "Command not found" << std::endl;
+	sendMessage("ERR_UNKNOWNCOMMAND :Unknown command\r\n");
 	_buff.erase(0, _buff.size());
-	std::cout << "Error in input : " << arg << std::endl;
+	std::cout << "Client " << _fd << " Error in input : " << arg << std::endl;
     return false;
 }
 
@@ -303,7 +325,6 @@ bool Client::listen() {
         packetRecieption(*this, arg);
         
     }
-	std::cout << "END :: Here is buff : [" << _buff << "]" << std::endl;
     return true;
 }
 
