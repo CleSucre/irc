@@ -74,9 +74,6 @@ void Client::setNick(const std::string &name)
  */
 static bool parsecolon(const std::string &args, std::string *username)
 {
-	//Parsing USER command arguments, finding the first ":"
-	// and checking if there are enough parameters
-	// fill a vector with the parameters
 	std::string::size_type limit;
 	limit = args.find(":");
 	if (limit == std::string::npos)
@@ -97,7 +94,7 @@ static bool parsecolon(const std::string &args, std::string *username)
 		return (false);
 	}
 	for(size_t i = 3; i < tokens.size(); i++)
-		(*username).append(tokens[i]);
+		(*username).append(tokens[i] + " ");
 	(*username).append(args.substr(limit + 1));
 	return (true);
 }
@@ -115,7 +112,6 @@ static bool parsecolon(const std::string &args, std::string *username)
 bool Client::setUser(const std::string &args)
 {
 	/**
-	 * fill username with everything between 3thrd count and last one without first occurence en ':'
 	 * Non-vide : username et realname ne doivent pas être des chaînes vides.
 		Longueur max : typiquement < 9 caractères pour username d’après la RFC,
 		et < 50–100 pour realname (tu peux adapter selon tes limites).
@@ -135,7 +131,7 @@ bool Client::setUser(const std::string &args)
 	std::string username;
 	parsecolon(args, &username);
 	std::cout << "username : " << username << std::endl;
-	if (username.length() < 1)
+	if (username.length() < 1 || username.length() > 75)
 	{
 		std::cerr << "Client " << _id.Username << " has entered a wrong UserName." << std::endl;
 		return (false);
