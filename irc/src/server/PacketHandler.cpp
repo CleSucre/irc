@@ -1,38 +1,21 @@
-#include "irc.hpp"
 #include "Channel.hpp"
+#include "JoinCommand.hpp"
 
-std::vector<std::string> split(const std::string& line) {
-	std::vector<std::string> tokens;
-	std::istringstream iss(line);
-	std::string word;
-
-	while (iss >> word) {
-		tokens.push_back(word);
-		if (!word.empty() && word[0] == ':') {
-			std::string rest;
-			std::getline(iss, rest);
-			tokens.back() += rest;
-			break;
-		}
-	}
-	return tokens;
-}
-
-std::vector<std::string> getCommand(const std::string& inputLine) {
+CommandBase *getCommand(Client& client, const std::string& inputLine) {
 	std::string line = inputLine;
 
-	// if (!line.empty() && line.back() == '\n') line.pop_back();
-	// if (!line.empty() && line.back() == '\r') line.pop_back();
-
-	std::vector<std::string> tokens = split(line);
+	std::vector<std::string> tokens = split(line, ':');
 
 	if (tokens.empty())
-		return tokens;
+		return NULL;
 
 	if (tokens[0][0] == ':' && tokens.size() >= 2)
 		tokens.erase(tokens.begin());
 
-	return tokens;
+	if (tokens[0] == "JOIN") {
+		return new JoinCommand(client, tokens);
+	}
+	return NULL;
 }
 
 /**
@@ -42,25 +25,19 @@ std::vector<std::string> getCommand(const std::string& inputLine) {
  * @param packet The packet received from the client
  */
 void packetRecieption(Client& client, const std::string& packet) {
-	std::cout << "Packet received from client " << client.getFd() << ": " << packet << std::endl;
-	std::vector<std::string> cmd = getCommand(packet);
+	std::cout << "Packet received from client " << client.getIp() << ": " << packet << std::endl;
+	CommandBase *cmd = getCommand(client, packet);
 
-	// traitement commande
-	// if (cmd[1] == "KICK") {
-	// 	kick(client, cmd);
-	// } else if (cmd[1] == "INVITE") {
-	// 	invite(client, cmd);
-	// }else if (cmd[1] == "TOPIC") {
-	// 	topic(client, cmd);
-	// } else if (cmd[1] == "MODE") {
-	// 	mode(client, cmd);
-	// } else if (cmd[1] == "JOIN") {
-	// 	join(client, cmd);
-	// } else if (cmd[1] == "PRIVMSG") {
-	// 	privmsg(client, cmd);
-	// } else {
-		// commande not found
-	// }
+	std::cout << "DEBUG 1" << std::endl;
+	if (cmd) {
+		std::cout << "DEBUG 2" << std::endl;
+		std::string result = cmd->execute();
+		if (!result.empty()) {
+			client.sendMessage(result);
+		}
+		delete cmd;
+	}
+	//TODO: Handle messages?
 }
 
 // KICK		KICK <channel> <user> [:reason]

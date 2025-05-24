@@ -1,7 +1,8 @@
 NAME	= ircserv
 
 CXX	= c++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -Iincludes -g
+INCLUDES = $(shell find $(INC_DIR) -type d)
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -g $(addprefix -I, $(INCLUDES))
 LDLIBS		= -lssl -lcrypto
 
 RM		= rm -f
@@ -13,7 +14,9 @@ INC_DIR = includes
 
 SRCS	= main.cpp \
 			server/Server.cpp server/PacketHandler.cpp \
-			server/Channel.cpp server/Command.cpp \
+			server/Channel.cpp \
+			server/commands/CommandBase.cpp \
+			server/commands/JoinCommand.cpp \
 			client/Client.cpp \
 			Utils.cpp
 
@@ -45,4 +48,7 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re
+debug:
+	@echo $(INCLUDES)
+
+.PHONY: all clean fclean re debug
