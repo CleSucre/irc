@@ -65,6 +65,26 @@ void Client::setNick(const std::string &name)
 }
 
 /**
+ * @brief Parse the username arguments from USER command
+ * 			username : 0-9 , (-), etc., no space or controle characters,  < 9 characters
+			No # or ',' '.'
+ * @param args : arguments to parse
+ * @param username : pointer to the username to fill
+ * @return true if ok, false if error
+ */
+static bool isValidUsername(const std::string& username) {
+	size_t len = username.length();
+    if (username.empty() || len >= 9)
+        return false;
+    for (std::string::size_type i = 0; i < len; ++i) {
+        char c = username[i];
+        if (c < 32 || c == ' ' || c == ':' || c == '#' || c == ',' || (!std::isalnum(c) && c != '-'))
+            return false;
+    }
+    return true;
+}
+
+/**
  * @brief Parse the arguments of the USER command
  * 		Fill the username with everything between 3thrd 
  * 		count and last one without first occurence en ':'
@@ -72,6 +92,7 @@ void Client::setNick(const std::string &name)
  * @param username : pointer to the username to fill
  * @return true if ok, false if error
  */
+#
 static bool parsecolon(const std::string &args, std::string *username)
 {
 	std::string::size_type limit;
@@ -84,10 +105,17 @@ static bool parsecolon(const std::string &args, std::string *username)
 	std::string check = args.substr(0, limit);
 	std::istringstream iss(check);
 	std::string param;
-	int count;
 	std::vector<std::string> tokens;
+	int count;
 	for (count = 0; iss >> param; count++)
+	{
+		if (count == 0 && isValidUsername(param) == false)
+		{
+			std::cerr << "ERR_INVALIDPARAMS :Invalid username" << std::endl;
+			return (false);
+		}
 		tokens.push_back(param);
+	}
 	if (count < 3)
 	{
 		std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
