@@ -40,18 +40,19 @@ class Server {
         bool processNewClient(int client_fd);
         bool processFds(fd_set read_fds, int max_fd);
 
-        bool addClient(Client* client);
-        Client *getClientByName(const std::string& name);
-
-        bool addChannel(Channel* channel);
-        std::vector<Channel*> getAllChannels();
-        Channel *getChannelByName(const std::string& name);
     public:
         Server(int port, const std::string& password, const std::string& certFile, const std::string& keyFile);
         ~Server();
 
         void start();
         void stop();
+
+        bool addClient(Client* client);
+        Client *getClientByName(const std::string& name);
+
+        bool addChannel(Channel* channel);
+        std::vector<Channel*> getAllChannels();
+        Channel *getChannelByName(const std::string& name);
 };
 
 #endif // SERVER_HPP

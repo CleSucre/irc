@@ -37,11 +37,12 @@ bool Channel::getMode(int index) {
 	return _mode[index];
 }
 
-void Channel::setMode(int index, bool mode, unsigned int optionnal) {
-	if (index == mL && mode == true) {
-		_modeL = optionnal;
-	}
+void Channel::setMode(int index, bool mode) {
 	_mode[index] = mode;
+}
+
+void Channel::setModeL(unsigned int limit) {
+	_modeL = limit;
 }
 
 std::vector<Client *> Channel::getAdmin() {
@@ -59,11 +60,14 @@ bool Channel::addAdmin(Client* client) {
 		return false;
 
 	for (std::vector<std::pair<Client*, int> >::iterator it = _user.begin(); it != _user.end(); ++it) {
-		if (it->second != user)
-			return false;
+		if (it->first == client) {
+			it->second = admin;
+			return true;
+		}
 	}
 
-	return false;
+	_user.push_back(std::make_pair(client, admin));
+	return true;
 }
 
 std::vector<Client *> Channel::getUser() {
@@ -91,7 +95,6 @@ bool Channel::addUser(Client* client) {
 	return true;
 }
 
-
 std::vector<Client *> Channel::getGuess() {
 	std::vector<Client *> tmp;
 	for (std::vector<std::pair<Client*, int> >::const_iterator it = _user.begin(); it != _user.end(); ++it) {
@@ -115,9 +118,9 @@ bool Channel::addGuess(Client *client) {
 	return true;
 }
 
-bool Channel::kickUser(Client* client, Client* toKick) {
+int Channel::kickUser(Client* client, Client* toKick) {
 	if (!client || !toKick || client == toKick)
-		return false;
+		return 0; // possible de gerer differment si on veux
 
 	std::vector<std::pair<Client*, int> >::iterator itToKick = _user.end();
 	std::vector<std::pair<Client*, int> >::iterator itClient = _user.end();
@@ -132,24 +135,76 @@ bool Channel::kickUser(Client* client, Client* toKick) {
 		if (itClient != _user.end()) {
 			if (itClient->second == admin) {
 				_user.erase(itToKick);
-				return true; // :client->getNickname() KICK #channel target :reason
+				return 0;
 			} else {
-				return false; // 482 ERR_CHANOPRIVSNEEDED "<channel> :You're not channel operator"
+				return 1;
 			}
 		} else {
-			return false; // 442 ERR_NOTONCHANNEL "<channel> :You're not on that channel"
+			return 2;
 		}
 
 	}
-	return false; // 441 ERR_USERNOTINCHANNEL "<nick> <channel> :They aren't on that channel"
+	return 3;
 }
 
-bool Channel::isMember(Client* client) {
+int Channel::inviteUser(Client* client, Client* toAdd) {
+	if (!client || !toAdd || client == toAdd)
+		return 0; // possible de gerer differment si on veux
+
+	std::vector<std::pair<Client*, int> >::iterator itToAdd = _user.end();
+	std::vector<std::pair<Client*, int> >::iterator itClient = _user.end();
+	for (std::vector<std::pair<Client*, int> >::iterator it = _user.begin(); it != _user.end(); ++it) {
+		if (it->first == toAdd)
+			itToAdd = it;
+		else if (it->first == client)
+			itClient  = it;
+	}
+
+	if (itToAdd == _user.end()) {
+		if (itClient != _user.end()) {
+			if (itClient->second == admin) {
+				_user.push_back(std::make_pair(toAdd, guess));
+				return 0;
+			} else {
+				return 1;
+			}
+		} else {
+			return 2;
+		}
+
+	}
+	return 3;
+}
+
+int Channel::getRole(Client *client) {
 	for (std::vector<std::pair<Client*, int> >::const_iterator it = _user.begin(); it != _user.end(); ++it) {
 		if (it->first == client)
-			return true;
+			return it->second;
 	}
-	return false;
-} // revoir si j'appose un filtre pour eviter de checker les guess
+	return -1;
+}
 
-// question sour l'implementation de la gestion d'erreur dans les methode de channel
+bool Channel::removeUser(Client* client) {
+	for (std::vector<std::pair<Client*, int> >::iterator it = _user.begin(); it != _user.end(); ++it) {
+		if (it->first == client){
+			_user.erase(it);
+			break ;
+		}
+	}
+}
+
+bool Channel::isEmpty() {
+	return _user.empty();
+}
+
+unsigned int Channel::getSize() {
+	return _user.size();
+}
+
+void Channel::broadcast(const Client& sender, const std::string& message) {
+    for (std::vector<std::pair<Client*, int> >::const_iterator it = _user.begin(); it != _user.end(); ++it) {
+        if (it->first && it->first != &sender) {
+            it->first->sendMessage(message);
+        }
+    }
+}
