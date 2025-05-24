@@ -65,18 +65,19 @@ void Client::setNick(const std::string &name)
 }
 
 /**
- * @brief Set the UserName of the client
- * @throw ERR_NEEDMOREPARAMS : Not enough parameters
- * @throw ERR_ALREADYREGISTERED : Already registered
- * @param name : UserName to set
+ * @brief Parse the arguments of the USER command
+ * 		Fill the username with everything between 3thrd 
+ * 		count and last one without first occurence en ':'
+ * @param args : arguments to parse
+ * @param username : pointer to the username to fill
  * @return true if ok, false if error
  */
-
-static bool parsecolon(const std::string &args, std::string::size_type &limit)
+static bool parsecolon(const std::string &args, std::string *username)
 {
 	//Parsing USER command arguments, finding the first ":"
 	// and checking if there are enough parameters
 	// fill a vector with the parameters
+	std::string::size_type limit;
 	limit = args.find(":");
 	if (limit == std::string::npos)
 	{
@@ -86,50 +87,33 @@ static bool parsecolon(const std::string &args, std::string::size_type &limit)
 	std::string check = args.substr(0, limit);
 	std::istringstream iss(check);
 	std::string param;
-	int count = 0;
+	int count;
 	std::vector<std::string> tokens;
 	for (count = 0; iss >> param; count++)
-	{
 		tokens.push_back(param);
-	}
 	if (count < 3)
 	{
 		std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
 		return (false);
 	}
+	for(size_t i = 3; i < tokens.size(); i++)
+		(*username).append(tokens[i]);
+	(*username).append(args.substr(limit + 1));
 	return (true);
 }
 
-//  USER <username> <hostname> <servername> :<realname>
-// Exemple : 
-// USER test * * :Test User
-// USER guest tolmoon tolsun :Ronnie Reagan
+
+/**
+ * @brief Set the UserName of the client
+ * @throw ERR_NEEDMOREPARAMS : Not enough parameters
+ * @throw ERR_ALREADYREGISTERED : Already registered
+ * @example : USER guest tolmoon tolsun :Ronnie Reagan
+ * 			USER <username> <hostname> <servername> :<realname>
+ * @param name : UserName to set
+ * @return true if ok, false if error
+ */
 bool Client::setUser(const std::string &args)
 {
-	// //Parsing USER command arguments, finding the first ":"
-	// // and checking if there are enough parameters
-	// // fill a vector with the parameters
-	// std::string::size_type limit = args.find(":");
-	// if (limit == std::string::npos)
-	// {
-	// 	std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
-	// 	return (false);
-	// }
-	// std::string check = args.substr(0, limit);
-	// std::istringstream iss(check);
-	// std::string param;
-	// int count = 0;
-	// std::vector<std::string> tokens;
-	// for (count = 0; iss >> param; count++)
-	// {
-	// 	tokens.push_back(param);
-	// }
-	// if (count < 3)
-	// {
-	// 	std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
-	// 	return (false);
-	// }
-	///// TODO: separate here to parse tokens
 	/**
 	 * fill username with everything between 3thrd count and last one without first occurence en ':'
 	 * Non-vide : username et realname ne doivent pas être des chaînes vides.
@@ -142,26 +126,21 @@ bool Client::setUser(const std::string &args)
 		sinon ERR_INVALIDPARAMS
 
 	 */
-	// Check if username is empty
-	std::string::size_type limit2;
-	// limit2 = args.find(":");
-	if (!parsecolon(args, limit2))
+	//Check if the client is already registered
+	if (_id.certify == true || _id.Username.length() > 0)
+	{
+		std::cerr << "462 ERR_ALREADYREGISTERED :Unauthorized command (already registered) "<< std::endl;
 		return (false);
-	size_t limit;
-	limit = limit2;
-	std::cout << "limit : " << limit << std::endl;
-	std::string username = args.substr(limit, args.length());
+	}
+	std::string username;
+	parsecolon(args, &username);
+	std::cout << "username : " << username << std::endl;
 	if (username.length() < 1)
 	{
 		std::cerr << "Client " << _id.Username << " has entered a wrong UserName." << std::endl;
 		return (false);
 	}
 	//TODO: Check if new UserName isn't already taken in the server and in channels --- Same function as in Nickname
-	if (_id.certify == true || _id.Username.length() > 0)
-	{
-		std::cerr << "462 ERR_ALREADYREGISTERED :Unauthorized command (already registered) "<< std::endl;
-		return (false);
-	}
 	_id.Username = username;
 	std::cout << "Client " << _fd << " is now known as : " << _id.Username << std::endl;
     return (true);
