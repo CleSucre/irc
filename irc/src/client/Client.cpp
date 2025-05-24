@@ -140,15 +140,8 @@ static bool parsecolon(const std::string &args, std::string *username)
 bool Client::setUser(const std::string &args)
 {
 	/**
-	 * Non-vide : username et realname ne doivent pas être des chaînes vides.
-		Longueur max : typiquement < 9 caractères pour username d’après la RFC,
-		et < 50–100 pour realname (tu peux adapter selon tes limites).
-		username : alphanumériques, tirets (-), etc., pas d’espaces ni de caractères de contrôle. < 9 caractères
-			Pas de : ni de # ni de ,.
 		hostname et servername : format d’hôte (lettres, chiffres, points). <= 255 caractères 
 		realname : peut contenir espaces, mais pas \r/\n.
-		sinon ERR_INVALIDPARAMS
-
 	 */
 	//Check if the client is already registered
 	if (_id.certify == true || _id.Username.length() > 0)
@@ -158,7 +151,6 @@ bool Client::setUser(const std::string &args)
 	}
 	std::string username;
 	parsecolon(args, &username);
-	std::cout << "username : " << username << std::endl;
 	if (username.length() < 1 || username.length() > 75)
 	{
 		std::cerr << "Client " << _id.Username << " has entered a wrong UserName." << std::endl;
@@ -178,16 +170,6 @@ bool Client::setUser(const std::string &args)
 /*
 PASS après enregistrement
 Selon RFC 2812, la commande PASS « MUST be sent before any attempt to register the connection is made » ; si elle arrive après l’enregistrement, le serveur renvoie
-
-NICK nouveauPseudo  
-provoque :
-
-une vérification que nouveauPseudo n’est pas déjà pris (sinon ERR_NICKNAMEINUSE 433),
-un changement effectif de votre identifiant visible sur le réseau.
-Si vous ré–émettez NICK avec le même pseudo, le serveur peut tout simplement 
-l’ignorer ou vous renvoyer un RPL_NICKCHANGE, mais n’émettra pas d’erreur « already registered » pour cette commande 
-DataTracker IETF
-.
 */
 
 /**
@@ -199,7 +181,10 @@ bool Client::checkIdentification()
 {
 	if (_id.certify == false && _buff.find("NICK") == std::string::npos\
 		&& _buff.find("USER") == std::string::npos)
+	{
+		std::cerr << "ERR_NOTREGISTERED :You have not registered" << std::endl; // TODO: Send this error to the client
 		return false;
+	}
 	if (_buff.find("NICK") != std::string::npos)
 	{
 		setNick(_buff.substr(_buff.find("NICK") + 5));
@@ -212,7 +197,6 @@ bool Client::checkIdentification()
 	}
 	if (_id.Username.length() > 0  && _id.Nickname.length() > 0)
 		_id.certify = true;
-    std::cout << "id.certify : " << _id.certify << std::endl;
 	return true;
 }
 /**
@@ -224,14 +208,12 @@ bool Client::checkIdentification()
  */
 bool Client::go_command(std::string arg)
 {
-    std::cout << "Here is arg [" << arg << "]" << std::endl;
 	std::string command[4] = {"KICK", "INVITE", "TOPIC", "MODE"};
 	for (int i = 0; i < 4; i++)
 	{
 		if (arg.find(command[i]) != std::string::npos)
 		{
 			std::cout << "Command found : " << command[i] << std::endl;
-			
 			return true;
 		}
 	}
@@ -266,28 +248,23 @@ bool Client::listen() {
 	buffer[bytes_read] = '\0';
 	// Concatenate the buffer to the client's buffer
 	_buff.append(buffer);
-    std::cout << "Here is buff : [" << _buff << "]\n\n" << std::endl; 
 	// Check identification
 	if (checkIdentification() == false)
     {
         _buff.erase(0, _buff.size());
-        std::cerr << "out here" << std::endl;
 		return true;
     }
 	// Check if the buffer contains a complete command
     size_t pos;
-	std::cout << "Here is buff : [" << _buff << "]" << std::endl;
     while ((pos = _buff.find("\r\n")) != std::string::npos) {
-		std::cout << "pos : " << pos << std::endl;
         std::string arg = _buff.substr(0, pos);
         _buff.erase(0, pos + 2);
-		// Check if the command is valid
-		// TODO: Parse command and send it to person C
+		// TODO: Parse command and send it to person C + change this function name
         go_command(arg);
 		// Valid packet received
         packetRecieption(*this, arg);
         
     }
-	 std::cout << "END :: Here is buff : [" << _buff << "]" << std::endl;
+	std::cout << "END :: Here is buff : [" << _buff << "]" << std::endl;
     return true;
 }
