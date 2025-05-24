@@ -18,6 +18,12 @@ bool Client::setNick(const std::string &name)
 		return false;
 	}
     //TODO: Check if new NickName isn't already taken in the server and in channels
+	if (_server->getClientByNickname(name) != NULL)
+	{
+		std::cerr<< "Client " << _fd << " has entered a NickName already taken : " << name << std::endl;
+		sendMessage("ERR_NICKNAMEINUSE :NickName already in use\r\n");
+		return false;
+	}
 	if (_id.Nickname != name)
 		_id.Nickname = name;
 	std::cout << "Client " << _id.Username << " has entered a new NickName : " << _id.Nickname << std::endl;
@@ -121,6 +127,12 @@ bool Client::setUser(const std::string &args)
 		sendMessage("ERR_INVALIDPARAMS :Invalid username\r\n");
 		std::cerr << "Client " << _id.Username << " has entered a wrong UserName." << std::endl;
 		return (false);
+	}
+	if (_server->getClientByName(username) != NULL)
+	{
+		std::cerr<< "Client " << _fd << " has entered a NickName already taken : " << username << std::endl;
+		sendMessage("ERR_NICKNAMEINUSE :NickName already in use\r\n");
+		return false;
 	}
 	//TODO: Check if new UserName isn't already taken in the server and in channels --- Same function as in Nickname
 	_id.Username = username;

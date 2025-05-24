@@ -17,6 +17,7 @@
 #define MAX_CLIENTS 10
 
 class Channel;
+class Client;
 #include "Channel.hpp"
 
 class Server {
@@ -52,6 +53,7 @@ class Server {
 
         bool addClient(Client* client);
         Client *getClientByName(const std::string& name);
+        Client *getClientByNickname(const std::string& name);
 
         bool addChannel(Channel* channel);
         bool removeChannel(Channel* channel);
