@@ -27,23 +27,30 @@ class Client {
         std::string _buff;
         identification _id;
         int _fd;
+        char* _ip;
         SSL* _ssl;
 
     public:
-        Client(Server *server, int fd, SSL* ssl);
+        Client(Server *server, int fd, char *ip, SSL* ssl);
         ~Client();
 
         int getFd() const;
+        const char *getIp() const;
         void setNick(const std::string &);
+        std::string getNick() const;
         bool setUser(const std::string &);
+        std::string getUser() const;
+        std::string getPrefix() const;
 
         Server* getServer() const;
         bool isSSL() const;
         bool listen();
         bool checkIdentification();
         bool go_command(std::string arg);
+
+        void sendMessage(const std::string& message);
 };
 
-void packetRecieption(const Client& client, const std::string& packet);
+void packetRecieption(Client& client, const std::string& packet);
 
 #endif // CLIENT_HPP

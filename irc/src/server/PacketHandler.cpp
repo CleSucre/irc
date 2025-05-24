@@ -41,9 +41,8 @@ std::vector<std::string> getCommand(const std::string& inputLine) {
  * @param client The client that sent the packet
  * @param packet The packet received from the client
  */
-void packetRecieption(const Client& client, const std::string& packet) {
+void packetRecieption(Client& client, const std::string& packet) {
 	std::cout << "Packet received from client " << client.getFd() << ": " << packet << std::endl;
-
 	std::vector<std::string> cmd = getCommand(packet);
 
 	// traitement commande

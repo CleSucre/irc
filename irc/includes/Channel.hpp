@@ -8,6 +8,9 @@
 #include "colors.h"
 #include "Client.hpp"
 #include "Server.hpp"
+#include "Utils.hpp"
+#include "Error.hpp"
+#include "Response.hpp"
 
 #define mI 0
 #define mT 1
@@ -43,28 +46,48 @@ class Channel {
 		std::string getTopic();
 		void setTopic(std::string t);
 
-		bool getMode(int index);
-		void setMode(int index, bool mode, unsigned int optionnal);
+		bool getMode(int index) const;
+		void setMode(int index, bool mode);
+		unsigned int getModeL() const;
+		void setModeL(unsigned int limit);
 
+		std::string getModeString(bool isOperator) const;
+
+		bool isAdmin(Client *client) const;
 		std::vector<Client *> getAdmin();
 		bool addAdmin(Client *client);
 
+		bool isUser(Client *client) const;
 		std::vector<Client *> getUser();
 		bool addUser(Client *client);
 
+		bool isGuess(Client *client) const;
 		std::vector<Client *> getGuess();
 		bool addGuess(Client *client);
 
-		bool kickUser(Client* client, Client* toKick);
+		std::string getAllNicks() const;
 
-		bool isMember(Client* client);
+		int kickUser(Client* client, Client* toKick);
+
+		int inviteUser(Client* client, Client* toAdd);
+
+		int getRole(Client *client);
+
+		bool removeUser(Client* client);
+
+		bool isEmpty();
+
+		unsigned int getSize();
+
+		void broadcast(const Client& sender, const std::string& message);
 };
 
+// void kick(Client* client, std::vector<std::string>& cmd);
+// void invite(Client* client, std::vector<std::string>& cmd);
+// void mode(Client* client, std::vector<std::string>& cmd);
+// void topic(Client* client, std::vector<std::string>& cmd);
+// void join(Client* client, std::vector<std::string>& cmd);
+// void privmsg(Client* client, std::vector<std::string>& cmd);
+// void part(Client* client, std::vector<std::string>& cmd);
 
-// void kick(const Client& client, std::vector<std::string>& cmd);
-// void invite(const Client& client, std::vector<std::string>& cmd);
-// void mode(const Client& client, std::vector<std::string>& cmd);
-// void topic(const Client& client, std::vector<std::string>& cmd);
-// void join(const Client& client, std::vector<std::string>& cmd);
-// void privmsg(const Client& client, std::vector<std::string>& cmd);
-
+// faire une fonction qui send un msg a tout les membre du channel ?

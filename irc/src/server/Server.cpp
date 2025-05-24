@@ -1,10 +1,7 @@
 #include "Server.hpp"
 
-Server::Server(int port, const std::string& password, const std::string& certFile, const std::string& keyFile)
-    : _port(port), _password(password), _ssl_ctx(NULL), _server_fd(-1), _running(false) {
-    for (int i = 0; i < MAX_CLIENTS; ++i) {
-        _clients[i] = NULL;
-    }
+Server::Server(std::string name, int port, const std::string& password, const std::string& certFile, const std::string& keyFile)
+    : _name(name), _port(port), _password(password), _ssl_ctx(NULL), _server_fd(-1), _running(false) {
 
     if (!setupSSLContext(certFile.c_str(), keyFile.c_str())) {
         std::cerr << RED << "Failed to setup SSL context" << RESET << std::endl;
@@ -13,16 +10,24 @@ Server::Server(int port, const std::string& password, const std::string& certFil
 }
 
 Server::~Server() {
-    for (int i = 0; i < MAX_CLIENTS; ++i) {
-        if (_clients[i]) {
-            close(_clients[i]->getFd());
-            delete _clients[i];
-            _clients[i] = NULL;
-        }
+    for (size_t i = 0; i < _clients.size(); ++i) {
+        close(_clients[i]->getFd());
+        delete _clients[i];
     }
+    _clients.clear();
+
     if (_server_fd != -1) {
         close(_server_fd);
     }
+}
+
+/**
+ * @brief Retrieves the server name
+ * 
+ * @return const std::string& The server name
+ */
+const std::string& Server::getName() const {
+    return _name;
 }
 
 /**
@@ -34,7 +39,6 @@ Server::~Server() {
  * @return bool true on success, false on failure
  */
 bool Server::setupSSLContext(const char* certFile, const char* keyFile) {
-    // Vérification existence fichiers
     if (access(certFile, F_OK) == -1) {
         std::cerr << RED << "Certificate file not found: " << certFile << RESET << std::endl;
         return false;
@@ -123,18 +127,94 @@ bool Server::listenSocket() {
     return true;
 }
 
+/**
+ * @brief Adds a new client to the server after a successful connection
+ * 
+ * @param client The client to add
+ * 
+ * @return bool true on success, false on failure
+ */
 bool Server::addClient(Client* client) {
-    for (int i = 0; i < MAX_CLIENTS; ++i) {
-        if (_clients[i] == NULL) {
-            _clients[i] = client;
-            std::cout << GREEN << "Client " << YELLOW << client->getFd() << GREEN
-                    << " connected" << RESET << std::endl;
+    if (_clients.size() >= MAX_CLIENTS) {
+        std::cerr << "Max clients reached" << std::endl;
+        delete client;
+        return false;
+    }
+    _clients.push_back(client);
+    std::cout << GREEN << "Client " << YELLOW << client->getIp() << GREEN
+              << " connected" << RESET << std::endl;
+    return true;
+}
+
+/**
+ * @brief Retrieves a client by its name
+ * 
+ * @param name The name of the client to retrieve
+ * 
+ * @return Client* Pointer to the client, or NULL if not found
+ */
+Client* Server::getClientByName(const std::string& name) {
+    for (size_t i = 0; i < _clients.size(); ++i) {
+        if (_clients[i]->getUser() == name) {
+            return _clients[i];
+        }
+    }
+    return NULL;
+}
+
+/**
+ * @brief Adds a new channel to the server
+ * 
+ * @param channel The channel to add
+ * 
+ * @return bool true on success, false on failure
+ */
+bool Server::addChannel(Channel* channel) {
+    _channels.push_back(channel);
+    return true;
+}
+
+/**
+ * @brief Removes a channel from the server
+ * 
+ * @param channel The channel to remove
+ * 
+ * @return bool true on success, false on failure
+ */
+bool Server::removeChannel(Channel* channel) {
+    for (size_t i = 0; i < _channels.size(); ++i) {
+        if (_channels[i] == channel) {
+            delete _channels[i];
+            _channels.erase(_channels.begin() + i);
             return true;
         }
     }
-    std::cerr << "Max clients reached" << std::endl;
-    delete client;
     return false;
+}
+
+/**
+ * @brief Retrieves all channels on the server
+ * 
+ * @return std::vector<Channel*> A vector of pointers to all channels
+ */
+std::vector<Channel*> Server::getAllChannels() {
+    return _channels;
+}
+
+/**
+ * @brief Retrieves a channel by its name
+ * 
+ * @param name The name of the channel to retrieve
+ * 
+ * @return Channel* Pointer to the channel, or NULL if not found
+ */
+Channel* Server::getChannelByName(const std::string& name) {
+    for (size_t i = 0; i < _channels.size(); ++i) {
+        if (_channels[i]->getName() == name) {
+            return _channels[i];
+        }
+    }
+    return NULL;
 }
 
 /**
@@ -148,13 +228,11 @@ void Server::resetReadFds(fd_set& read_fds, int& max_fd) {
     FD_SET(_server_fd, &read_fds);
     max_fd = _server_fd;
 
-    for (int i = 0; i < MAX_CLIENTS; ++i) {
-        if (_clients[i]) {
-            int fd = _clients[i]->getFd();
-            FD_SET(fd, &read_fds);
-            if (fd > max_fd) {
-                max_fd = fd;
-            }
+    for (size_t i = 0; i < _clients.size(); ++i) {
+        int fd = _clients[i]->getFd();
+        FD_SET(fd, &read_fds);
+        if (fd > max_fd) {
+            max_fd = fd;
         }
     }
 }
@@ -167,7 +245,10 @@ void Server::resetReadFds(fd_set& read_fds, int& max_fd) {
  * @return bool true on success, false on failure
  */
 bool Server::processNewClient(int _server_fd) {
-    int client_fd = accept(_server_fd, NULL, NULL);
+    struct sockaddr_in client_addr;
+    socklen_t client_len = sizeof(client_addr);
+
+    int client_fd = accept(_server_fd, (struct sockaddr*)&client_addr, &client_len);
     if (client_fd == -1) {
         std::cerr << "Accept failed" << std::endl;
         return false;
@@ -184,7 +265,8 @@ bool Server::processNewClient(int _server_fd) {
         }
     }
 
-    Client* client = new Client(this, client_fd, ssl);
+    char* client_ip = inet_ntoa(client_addr.sin_addr);
+    Client* client = new Client(this, client_fd, client_ip, ssl);
     if (!addClient(client)) {
         if (ssl) {
             SSL_shutdown(ssl);
@@ -218,12 +300,14 @@ bool Server::processFds(fd_set read_fds, int max_fd) {
         }
     }
 
-    for (int i = 0; i < MAX_CLIENTS; ++i) {
-        if (_clients[i] && FD_ISSET(_clients[i]->getFd(), &read_fds)) {
-            if (!_clients[i]->listen()) {
-                close(_clients[i]->getFd());
-                delete _clients[i];
-                _clients[i] = NULL;
+    // Parcours inverse pour pouvoir supprimer les clients dans la boucle
+    for (int i = (int)_clients.size() - 1; i >= 0; --i) {
+        Client* client = _clients[i];
+        if (FD_ISSET(client->getFd(), &read_fds)) {
+            if (!client->listen()) {
+                close(client->getFd());
+                delete client;
+                _clients.erase(_clients.begin() + i);
             }
         }
     }
@@ -255,13 +339,11 @@ void Server::start() {
         }
     }
 
-    for (int i = 0; i < MAX_CLIENTS; ++i) {
-        if (_clients[i]) {
-            close(_clients[i]->getFd());
-            delete _clients[i];
-            _clients[i] = NULL;
-        }
+    for (size_t i = 0; i < _clients.size(); ++i) {
+        close(_clients[i]->getFd());
+        delete _clients[i];
     }
+    _clients.clear();
 
     close(_server_fd);
     std::cout << RED << "Server stopped" << RESET << std::endl;

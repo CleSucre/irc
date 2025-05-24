@@ -14,7 +14,7 @@ NICK MonPseudo
 USER MonIdent 0 * :Mon Nom Réel
  */
 
-Client::Client(Server *server, int fd, SSL* ssl) : _server(server), _fd(fd), _ssl(ssl) {
+Client::Client(Server *server, int fd, char *ip, SSL* ssl) : _server(server), _fd(fd), _ip(ip), _ssl(ssl) {
    _id.certify = false;
 }
 
@@ -33,6 +33,10 @@ Client::~Client() {
  */
 int Client::getFd() const {
     return _fd;
+}
+
+const char *Client::getIp() const {
+	return _ip;
 }
 
 Server* Client::getServer() const {
@@ -65,6 +69,15 @@ void Client::setNick(const std::string &name)
 }
 
 /**
+ * @brief Get the NickName of the client
+ * 
+ * @return std::string : NickName
+ */
+std::string Client::getNick() const
+{
+	return _id.Nickname;
+}
+
  * @brief Parse the username arguments from USER command
  * 			username : 0-9 , (-), etc., no space or controle characters,  < 9 characters
 			No # or ',' '.'
@@ -160,6 +173,31 @@ bool Client::setUser(const std::string &args)
 	_id.Username = username;
 	std::cout << "Client " << _fd << " is now known as : " << _id.Username << std::endl;
     return (true);
+}
+
+/**
+ * @brief Get the UserName of the client
+ * 
+ * @return std::string : UserName
+ */
+std::string Client::getUser() const
+{
+	return _id.Username;
+}
+
+/**
+ * @brief Get the prefix of the client
+ * 
+ * @return std::string : prefix
+ */
+std::string Client::getPrefix() const {
+    std::string prefix;
+    if (_id.certify == true) {
+        prefix = ":" + _id.Nickname + "!" + _id.Username + "@" + std::string(_ip);
+    } else {
+        prefix = ":" + std::string(_ip);
+    }
+    return prefix;
 }
 
 
@@ -267,4 +305,18 @@ bool Client::listen() {
     }
 	std::cout << "END :: Here is buff : [" << _buff << "]" << std::endl;
     return true;
+}
+
+/**
+ * @brief Send a message to the client
+ * 
+ * @param message : message to send
+ * @return true if ok, false if error
+ */
+void Client::sendMessage(const std::string& message) {
+	if (_ssl) {
+		SSL_write(_ssl, message.c_str(), message.length());
+	} else {
+		send(_fd, message.c_str(), message.length(), 0);
+	}
 }
