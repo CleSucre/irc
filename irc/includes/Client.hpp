@@ -4,11 +4,14 @@
 #include <iostream>
 #include <unistd.h>
 #include <cstring>
+#include <vector>
+#include <sstream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include "colors.h"
+
 
 #define BUFFER_SIZE 1024
 class Server;

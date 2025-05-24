@@ -18,7 +18,8 @@ SRCS	= main.cpp \
 			server/commands/CommandBase.cpp \
 			server/commands/JoinCommand.cpp \
 			client/Client.cpp \
-			Utils.cpp
+			Utils.cpp \
+			parsing/Identification.cpp
 
 SRCS	:= $(addprefix $(SRC_DIR)/, $(SRCS))
 
