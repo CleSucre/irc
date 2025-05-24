@@ -11,7 +11,6 @@
 #include "colors.h"
 
 #define BUFFER_SIZE 1024
-
 class Server;
 
 struct identification
@@ -36,7 +35,7 @@ class Client {
 
         int getFd() const;
         const char *getIp() const;
-        void setNick(const std::string &);
+        bool setNick(const std::string &);
         std::string getNick() const;
         bool setUser(const std::string &);
         std::string getUser() const;
