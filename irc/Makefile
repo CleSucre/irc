@@ -13,7 +13,9 @@ INC_DIR = includes
 
 SRCS	= main.cpp \
 			server/Server.cpp server/PacketHandler.cpp \
-			client/Client.cpp channel.cpp
+			server/Channel.cpp server/Command.cpp \
+			client/Client.cpp \
+			Utils.cpp
 
 SRCS	:= $(addprefix $(SRC_DIR)/, $(SRCS))
 

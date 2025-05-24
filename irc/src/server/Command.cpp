@@ -4,16 +4,18 @@
 
 // KICK		KICK <channel> <user> [:reason]
 void kick(Client* client, const std::vector<std::string>& cmd) {
+	Server *server = client->getServer();
+	std::string serverName = server->getName();
 	if (cmd.size() < 3) {
 		client->sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(client->getNick(), "KICK"));
 		return;
 	}
-	Channel* channel = client->getServer()->getChannelByName(cmd[1]);
+	Channel* channel = server->getChannelByName(cmd[1]);
 	if (!channel) {
 		client->sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(client->getNick(), cmd[1]));
 		return;
 	}
-	Client* toKick = client->getServer()->getClientByName(cmd[2]);
+	Client* toKick = server->getClientByName(cmd[2]);
 	if (!toKick) {
 		client->sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(client->getNick(), cmd[2]));
 		return;
@@ -22,7 +24,7 @@ void kick(Client* client, const std::vector<std::string>& cmd) {
 	switch (result) {
 		case 0: {
 			std::string msg = ":" + client->getPrefix() + " KICK " + channel->getName() + " " + toKick->getNick();
-			if (cmd.size() > 3) msg += " :" + reconstructMessage(cmd, 3); // mettre tout les arg de cmd en un
+			if (cmd.size() > 3) msg += " :" + joinFirstN(cmd, 3); // mettre tout les arg de cmd en un
 			channel->broadcast(*client, msg);
 			break;
 		}
@@ -41,6 +43,8 @@ void kick(Client* client, const std::vector<std::string>& cmd) {
 
 // INVITE	INVITE <user> <channel>
 void invite(Client* client, const std::vector<std::string>& cmd) {
+	Server *server = client->getServer();
+	std::string serverName = server->getName();
 	if (cmd.size() < 3) {
 		client->sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(client->getNick(), "INVITE"));
 		return;
@@ -49,13 +53,13 @@ void invite(Client* client, const std::vector<std::string>& cmd) {
 	const std::string& toInviteNick = cmd[1];
 	const std::string& channelName = cmd[2];
 
-	Channel* channel = client->getServer()->getChannelByName(channelName);
+	Channel* channel = server->getChannelByName(channelName);
 	if (!channel) {
 		client->sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(client->getNick(), channelName));
 		return;
 	}
 
-	Client* toInvite = client->getServer()->getClientByName(toInviteNick);
+	Client* toInvite = server->getClientByName(toInviteNick);
 	if (!toInvite) {
 		client->sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(client->getNick(), toInviteNick));
 		return;
@@ -81,12 +85,14 @@ void invite(Client* client, const std::vector<std::string>& cmd) {
 
 // TOPIC	TOPIC <channel> [:topic]
 void topic(Client* client, const std::vector<std::string>& cmd) {
+	Server *server = client->getServer();
+	std::string serverName = server->getName();
 	if (cmd.size() < 2) {
 		client->sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(client->getNick(), "TOPIC"));
 		return;
 	}
 	const std::string& channelName = cmd[1];
-	Channel* channel = client->getServer()->getChannelByName(channelName);
+	Channel* channel = server->getChannelByName(channelName);
 	if (!channel) {
 		client->sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(client->getNick(), channelName));
 		return;
@@ -107,13 +113,15 @@ void topic(Client* client, const std::vector<std::string>& cmd) {
 		client->sendMessage(":" + serverName + " " + ERR_CHANOPRIVSNEEDED(client->getNick(), channelName));
 		return;
 	}
-	std::string newTopic = reconstructMessage(cmd, 2); // mettre tout les arg de cmd en un
+	std::string newTopic = joinFirstN(cmd, 2); // mettre tout les arg de cmd en un
 	channel->setTopic(newTopic);
 	channel->broadcast(*client, ":" + client->getPrefix() + " TOPIC " + channelName + " :" + newTopic);
 }
 
 // MODE		MODE <channel> <flags> [args]
 void mode(Client* client, const std::vector<std::string>& cmd) {
+	Server *server = client->getServer();
+	std::string serverName = server->getName();
 	if (cmd.size() < 2) {
 		client->sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(client->getNick(), "MODE"));
 		return;
@@ -125,14 +133,14 @@ void mode(Client* client, const std::vector<std::string>& cmd) {
 		return;
 	}
 
-	Channel* channel = client->getServer()->getChannelByName(target);
+	Channel* channel = server->getChannelByName(target);
 	if (!channel) {
 		client->sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(client->getNick(), target));
 		return;
 	}
 
 	if (cmd.size() == 2) {
-		std::string modes = channel->getModeString();  // à implémenter
+		std::string modes = channel->getModeString(channel->isAdmin(client));
 		client->sendMessage(":" + serverName + " " + RPL_CHANNELMODEIS(client->getNick(), target, modes));
 		return;
 	}
@@ -187,7 +195,7 @@ void mode(Client* client, const std::vector<std::string>& cmd) {
 						return;
 					}
 					{
-						Client* targetClient = client->getServer()->getClientByName(cmd[argIndex++]);
+						Client* targetClient = server->getClientByName(cmd[argIndex++]);
 						if (!targetClient || channel->getRole(targetClient) < 0) {
 							client->sendMessage(":" + serverName + " " + ERR_USERNOTINCHANNEL(client->getNick(), cmd[argIndex - 1], target));
 							return;
@@ -195,7 +203,7 @@ void mode(Client* client, const std::vector<std::string>& cmd) {
 						if (adding)
 							channel->addAdmin(targetClient);
 						else
-							channel->removeOperator(targetClient);  // à implémenter
+							channel->addUser(targetClient);  // à implémenter
 					}
 					break;
 				default:
@@ -215,6 +223,8 @@ void mode(Client* client, const std::vector<std::string>& cmd) {
 
 // JOIN		JOIN <channel> [key]
 void join(Client* client, const std::vector<std::string>& cmd) {
+	Server *server = client->getServer();
+	std::string serverName = server->getName();
 	if (cmd.size() < 2) {
 		client->sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(client->getNick(), "JOIN"));
 		return;
@@ -224,9 +234,13 @@ void join(Client* client, const std::vector<std::string>& cmd) {
 		client->sendMessage(":" + serverName + " " + ERR_UNKNOWNCOMMAND(client->getNick(), "JOIN"));
 		return;
 	}
-	Channel* channel = client->getServer()->getChannelByName(channelName);
-	if (!channel)
-		channel = createChannel(channelName, client);
+	Channel* channel = server->getChannelByName(channelName);
+	if (!channel) {
+		channel = new Channel(channelName);
+		channel->addAdmin(client);
+		client->sendMessage(":" + serverName + " " + RPL_NAMREPLY(client->getNick(), channelName, channel->getAllNicks()));
+		client->sendMessage(":" + serverName + " " + RPL_ENDOFNAMES(client->getNick(), channelName));
+	}
 
 	if (channel->getRole(client) >= 0)
 		return;
@@ -264,12 +278,12 @@ void join(Client* client, const std::vector<std::string>& cmd) {
 	for (size_t i = 0; i < tmp.size(); ++i)
 		names += "@" + tmp[i]->getNick() + " ";
 
-	std::vector<Client*> tmp = channel->getUser();
+	tmp = channel->getUser();
 	for (size_t i = 0; i < tmp.size(); ++i)
 		names += tmp[i]->getNick() + " ";
 
-	if (!names.empty() && names.back() == ' ')
-		names.pop_back();
+	if (!names.empty() && names[names.size() - 1] == ' ')
+		names[names.size() - 1] = '\0';
 
 	client->sendMessage(":" + serverName + " " + RPL_NAMREPLY(client->getNick(), channelName, names));
 	client->sendMessage(":" + serverName + " " + RPL_ENDOFNAMES(client->getNick(), channelName));
@@ -279,6 +293,8 @@ void join(Client* client, const std::vector<std::string>& cmd) {
 
 // PRIVMSG	PRIVMSG target [:message]
 void privmsg(Client* client, const std::vector<std::string>& cmd) {
+	Server *server = client->getServer();
+	std::string serverName = server->getName();
 	if (cmd.size() < 2) {
 		client->sendMessage(":" + serverName + " " + ERR_NORECIPIENT(client->getNick()));
 		return;
@@ -288,10 +304,10 @@ void privmsg(Client* client, const std::vector<std::string>& cmd) {
 		return;
 	}
 	const std::string& target = cmd[1];
-	std::string message = reconstructMessage(cmd, 2); // mettre tout les arg de cmd en un
+	std::string message = joinFirstN(cmd, 2); // mettre tout les arg de cmd en un
 
 	if (target[0] == '#' || target[0] == '&') {
-		Channel* channel = client->getServer()->getChannelByName(target);
+		Channel* channel = server->getChannelByName(target);
 		if (!channel) {
 			client->sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(client->getNick(), target));
 			return;
@@ -302,7 +318,7 @@ void privmsg(Client* client, const std::vector<std::string>& cmd) {
 		}
 		channel->broadcast(*client, ":" + client->getPrefix() + " PRIVMSG " + target + " :" + message);
 	} else {
-		Client* recipient = client->getServer()->getClientByName(target);
+		Client* recipient = server->getClientByName(target);
 		if (!recipient) {
 			client->sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(client->getNick(), target));
 			return;
@@ -314,15 +330,17 @@ void privmsg(Client* client, const std::vector<std::string>& cmd) {
 
 // PART #channel :Optional reason
 void part(Client* client, const std::vector<std::string>& cmd) {
+	Server *server = client->getServer();
+	std::string serverName = server->getName();
 	if (cmd.size() < 2) {
 		client->sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(client->getNick(), "PART"));
 		return;
 	}
 	std::vector<std::string> channels = split(cmd[1], ',');
-	std::string reason = (cmd.size() >= 3) ? reconstructMessage(cmd, 2);  // mettre tout les arg de cmd en un: "";
+	std::string reason = (cmd.size() >= 3) ? joinFirstN(cmd, 2) : " "; // mettre tout les arg de cmd en un: ""
 
 	for (size_t i = 0; i < channels.size(); ++i) {
-		Channel* channel = client->getServer()->getChannelByName(channels[i]);
+		Channel* channel = server->getChannelByName(channels[i]);
 		if (!channel) {
 			client->sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(client->getNick(), channels[i]));
 			continue;
@@ -335,6 +353,6 @@ void part(Client* client, const std::vector<std::string>& cmd) {
 		if (!reason.empty()) msg += " :" + reason;
 		channel->broadcast(*client, msg);
 		channel->removeUser(client);
-		if (channel->isEmpty()) client->getServer()->removeChannel(channel);
+		if (channel->isEmpty()) server->removeChannel(channel);
 	}
 }

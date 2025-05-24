@@ -8,6 +8,7 @@
 #include "colors.h"
 #include "Client.hpp"
 #include "Server.hpp"
+#include "Utils.hpp"
 #include "Error.hpp"
 #include "Response.hpp"
 
@@ -45,18 +46,26 @@ class Channel {
 		std::string getTopic();
 		void setTopic(std::string t);
 
-		bool getMode(int index);
+		bool getMode(int index) const;
 		void setMode(int index, bool mode);
+		unsigned int getModeL() const;
 		void setModeL(unsigned int limit);
 
+		std::string getModeString(bool isOperator) const;
+
+		bool isAdmin(Client *client) const;
 		std::vector<Client *> getAdmin();
 		bool addAdmin(Client *client);
 
+		bool isUser(Client *client) const;
 		std::vector<Client *> getUser();
 		bool addUser(Client *client);
 
+		bool isGuess(Client *client) const;
 		std::vector<Client *> getGuess();
 		bool addGuess(Client *client);
+
+		std::string getAllNicks() const;
 
 		int kickUser(Client* client, Client* toKick);
 

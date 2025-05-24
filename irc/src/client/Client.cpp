@@ -13,7 +13,7 @@ NICK MonPseudo
 USER MonIdent 0 * :Mon Nom Réel
  */
 
-Client::Client(Server *server, int fd, SSL* ssl) : _server(server), _fd(fd), _ssl(ssl) {
+Client::Client(Server *server, int fd, char *ip, SSL* ssl) : _server(server), _fd(fd), _ip(ip), _ssl(ssl) {
    _id.certify = false;
 }
 
@@ -32,6 +32,10 @@ Client::~Client() {
  */
 int Client::getFd() const {
     return _fd;
+}
+
+const char *Client::getIp() const {
+	return _ip;
 }
 
 Server* Client::getServer() const {
@@ -100,6 +104,21 @@ bool Client::setUser(const std::string &name)
 std::string Client::getUser() const
 {
 	return _id.Username;
+}
+
+/**
+ * @brief Get the prefix of the client
+ * 
+ * @return std::string : prefix
+ */
+std::string Client::getPrefix() const {
+    std::string prefix;
+    if (_id.certify == true) {
+        prefix = ":" + _id.Nickname + "!" + _id.Username + "@" + std::string(_ip);
+    } else {
+        prefix = ":" + std::string(_ip);
+    }
+    return prefix;
 }
 
 

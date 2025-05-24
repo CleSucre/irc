@@ -33,7 +33,7 @@ void Channel::setTopic(std::string t) {
 	_topic = t;
 }
 
-bool Channel::getMode(int index) {
+bool Channel::getMode(int index) const {
 	return _mode[index];
 }
 
@@ -41,8 +41,56 @@ void Channel::setMode(int index, bool mode) {
 	_mode[index] = mode;
 }
 
+unsigned int Channel::getModeL() const {
+	return _modeL;
+}
+
 void Channel::setModeL(unsigned int limit) {
 	_modeL = limit;
+}
+
+/**
+ * @brief Get a string representation of the channel modes.
+ * 
+ * @param isOperator Indicates if the client is an operator, if not, the password and user limit will not be included.
+ * @return std::string The string representation of the channel modes.
+ */
+std::string Channel::getModeString(bool isOperator) const {
+    std::string modeStr = "+";
+    std::string params;
+
+    if (_mode[mI])
+        modeStr += "i";
+    if (_mode[mT])
+        modeStr += "t";
+    if (_mode[mO])
+        modeStr += "o";
+    if (_mode[mK]) {
+        modeStr += "k";
+        if (isOperator)
+            params += " " + _password;
+    }
+    if (_mode[mL]) {
+        modeStr += "l";
+        if (isOperator) {
+			std::ostringstream oss;
+			oss << _modeL;
+			params += " " + oss.str();
+		}
+    }
+
+    return modeStr + params;
+}
+
+bool Channel::isAdmin(Client *client) const {
+	if (!client)
+		return false;
+
+	for (std::vector<std::pair<Client*, int> >::const_iterator it = _user.begin(); it != _user.end(); ++it) {
+		if (it->first == client && it->second == admin)
+			return true;
+	}
+	return false;
 }
 
 std::vector<Client *> Channel::getAdmin() {
@@ -70,6 +118,17 @@ bool Channel::addAdmin(Client* client) {
 	return true;
 }
 
+bool Channel::isUser(Client *client) const {
+	if (!client)
+		return false;
+
+	for (std::vector<std::pair<Client*, int> >::const_iterator it = _user.begin(); it != _user.end(); ++it) {
+		if (it->first == client && it->second == user)
+			return true;
+	}
+	return false;
+}
+
 std::vector<Client *> Channel::getUser() {
 	std::vector<Client *> tmp;
 	for (std::vector<std::pair<Client*, int> >::const_iterator it = _user.begin(); it != _user.end(); ++it) {
@@ -84,6 +143,8 @@ bool Channel::addUser(Client* client) {
 	if (!client)
 		return false;
 
+	removeUser(client);
+
 	for (std::vector<std::pair<Client*, int> >::iterator it = _user.begin(); it != _user.end(); ++it) {
 		if (it->first == client) {
 			it->second = user;
@@ -93,6 +154,17 @@ bool Channel::addUser(Client* client) {
 
 	_user.push_back(std::make_pair(client, user));
 	return true;
+}
+
+bool Channel::isGuess(Client *client) const {
+	if (!client)
+		return false;
+
+	for (std::vector<std::pair<Client*, int> >::const_iterator it = _user.begin(); it != _user.end(); ++it) {
+		if (it->first == client && it->second == guess)
+			return true;
+	}
+	return false;
 }
 
 std::vector<Client *> Channel::getGuess() {
@@ -116,6 +188,23 @@ bool Channel::addGuess(Client *client) {
 
 	_user.push_back(std::make_pair(client, guess));
 	return true;
+}
+
+std::string Channel::getAllNicks() const {
+	std::string names;
+	for (std::vector<std::pair<Client*, int> >::const_iterator it = _user.begin(); it != _user.end(); ++it) {
+		if (it->second == admin)
+			names += "@" + it->first->getNick() + " ";
+		else if (it->second == user)
+			names += it->first->getNick() + " ";
+		else if (it->second == guess)
+			names += "+" + it->first->getNick() + " ";
+	}
+
+	if (!names.empty() && names[names.size() - 1] == ' ')
+		names[names.size() - 1] = '\0';
+
+	return names;
 }
 
 int Channel::kickUser(Client* client, Client* toKick) {

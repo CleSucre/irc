@@ -141,7 +141,7 @@ bool Server::addClient(Client* client) {
         return false;
     }
     _clients.push_back(client);
-    std::cout << GREEN << "Client " << YELLOW << client->getFd() << GREEN
+    std::cout << GREEN << "Client " << YELLOW << client->getIp() << GREEN
               << " connected" << RESET << std::endl;
     return true;
 }
@@ -172,6 +172,24 @@ Client* Server::getClientByName(const std::string& name) {
 bool Server::addChannel(Channel* channel) {
     _channels.push_back(channel);
     return true;
+}
+
+/**
+ * @brief Removes a channel from the server
+ * 
+ * @param channel The channel to remove
+ * 
+ * @return bool true on success, false on failure
+ */
+bool Server::removeChannel(Channel* channel) {
+    for (size_t i = 0; i < _channels.size(); ++i) {
+        if (_channels[i] == channel) {
+            delete _channels[i];
+            _channels.erase(_channels.begin() + i);
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -227,7 +245,10 @@ void Server::resetReadFds(fd_set& read_fds, int& max_fd) {
  * @return bool true on success, false on failure
  */
 bool Server::processNewClient(int _server_fd) {
-    int client_fd = accept(_server_fd, NULL, NULL);
+    struct sockaddr_in client_addr;
+    socklen_t client_len = sizeof(client_addr);
+
+    int client_fd = accept(_server_fd, (struct sockaddr*)&client_addr, &client_len);
     if (client_fd == -1) {
         std::cerr << "Accept failed" << std::endl;
         return false;
@@ -244,7 +265,8 @@ bool Server::processNewClient(int _server_fd) {
         }
     }
 
-    Client* client = new Client(this, client_fd, ssl);
+    char* client_ip = inet_ntoa(client_addr.sin_addr);
+    Client* client = new Client(this, client_fd, client_ip, ssl);
     if (!addClient(client)) {
         if (ssl) {
             SSL_shutdown(ssl);
