@@ -15,7 +15,8 @@ SRCS	= main.cpp \
 			server/Server.cpp server/PacketHandler.cpp \
 			server/Channel.cpp server/Command.cpp \
 			client/Client.cpp \
-			Utils.cpp
+			Utils.cpp \
+			parsing/Identification.cpp
 
 SRCS	:= $(addprefix $(SRC_DIR)/, $(SRCS))
 
