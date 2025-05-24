@@ -21,6 +21,7 @@ class Channel;
 
 class Server {
     private:
+        std::string _name;
         int _port;
         std::string _password;
         SSL_CTX* _ssl_ctx;
@@ -41,11 +42,13 @@ class Server {
         bool processFds(fd_set read_fds, int max_fd);
 
     public:
-        Server(int port, const std::string& password, const std::string& certFile, const std::string& keyFile);
+        Server(std::string name, int port, const std::string& password, const std::string& certFile, const std::string& keyFile);
         ~Server();
 
         void start();
         void stop();
+
+        const std::string& getName() const;
 
         bool addClient(Client* client);
         Client *getClientByName(const std::string& name);

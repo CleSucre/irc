@@ -1,7 +1,7 @@
 #include "Server.hpp"
 
-Server::Server(int port, const std::string& password, const std::string& certFile, const std::string& keyFile)
-    : _port(port), _password(password), _ssl_ctx(NULL), _server_fd(-1), _running(false) {
+Server::Server(std::string name, int port, const std::string& password, const std::string& certFile, const std::string& keyFile)
+    : _name(name), _port(port), _password(password), _ssl_ctx(NULL), _server_fd(-1), _running(false) {
 
     if (!setupSSLContext(certFile.c_str(), keyFile.c_str())) {
         std::cerr << RED << "Failed to setup SSL context" << RESET << std::endl;
@@ -19,6 +19,15 @@ Server::~Server() {
     if (_server_fd != -1) {
         close(_server_fd);
     }
+}
+
+/**
+ * @brief Retrieves the server name
+ * 
+ * @return const std::string& The server name
+ */
+const std::string& Server::getName() const {
+    return _name;
 }
 
 /**
