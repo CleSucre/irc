@@ -1,5 +1,6 @@
 #include "Client.hpp"
-
+#include <sstream>
+#include <vector>
 
 /**
  * 
@@ -56,6 +57,11 @@ void Client::setNick(const std::string &name)
 {
     if (name.length() < 1)
 		return ;
+	else if (name.length() > 9 || name.find(" ") != std::string::npos)
+	{
+		std::cerr << "Client " << _id.Username << " has entered a wrong NickName." << std::endl;
+		return ;
+	}
     //TODO: Check if new NickName isn't already taken in the server and in channels
 	if (_id.Nickname != name)
 		_id.Nickname = name;
@@ -72,27 +78,100 @@ std::string Client::getNick() const
 	return _id.Nickname;
 }
 
+ * @brief Parse the username arguments from USER command
+ * 			username : 0-9 , (-), etc., no space or controle characters,  < 9 characters
+			No # or ',' '.'
+ * @param args : arguments to parse
+ * @param username : pointer to the username to fill
+ * @return true if ok, false if error
+ */
+static bool isValidUsername(const std::string& username) {
+	size_t len = username.length();
+    if (username.empty() || len >= 9)
+        return false;
+    for (std::string::size_type i = 0; i < len; ++i) {
+        char c = username[i];
+        if (c < 32 || c == ' ' || c == ':' || c == '#' || c == ',' || (!std::isalnum(c) && c != '-'))
+            return false;
+    }
+    return true;
+}
+
+/**
+ * @brief Parse the arguments of the USER command
+ * 		Fill the username with everything between 3thrd 
+ * 		count and last one without first occurence en ':'
+ * @param args : arguments to parse
+ * @param username : pointer to the username to fill
+ * @return true if ok, false if error
+ */
+#
+static bool parsecolon(const std::string &args, std::string *username)
+{
+	std::string::size_type limit;
+	limit = args.find(":");
+	if (limit == std::string::npos)
+	{
+		std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
+		return (false);
+	}
+	std::string check = args.substr(0, limit);
+	std::istringstream iss(check);
+	std::string param;
+	std::vector<std::string> tokens;
+	int count;
+	for (count = 0; iss >> param; count++)
+	{
+		if (count == 0 && isValidUsername(param) == false)
+		{
+			std::cerr << "ERR_INVALIDPARAMS :Invalid username" << std::endl;
+			return (false);
+		}
+		tokens.push_back(param);
+	}
+	if (count < 3)
+	{
+		std::cerr << "ERR_NEEDMOREPARAMS :Not enough parameters" << std::endl;
+		return (false);
+	}
+	for(size_t i = 3; i < tokens.size(); i++)
+		(*username).append(tokens[i] + " ");
+	(*username).append(args.substr(limit + 1));
+	return (true);
+}
+
+
 /**
  * @brief Set the UserName of the client
- * 
+ * @throw ERR_NEEDMOREPARAMS : Not enough parameters
+ * @throw ERR_ALREADYREGISTERED : Already registered
+ * @example : USER guest tolmoon tolsun :Ronnie Reagan
+ * 			USER <username> <hostname> <servername> :<realname>
  * @param name : UserName to set
  * @return true if ok, false if error
  */
-bool Client::setUser(const std::string &name)
+bool Client::setUser(const std::string &args)
 {
-	if (name.length() < 1)
+	/**
+		hostname et servername : format d’hôte (lettres, chiffres, points). <= 255 caractères 
+		realname : peut contenir espaces, mais pas \r/\n.
+	 */
+	//Check if the client is already registered
+	if (_id.certify == true || _id.Username.length() > 0)
+	{
+		std::cerr << "462 ERR_ALREADYREGISTERED :Unauthorized command (already registered) "<< std::endl;
+		return (false);
+	}
+	std::string username;
+	parsecolon(args, &username);
+	if (username.length() < 1 || username.length() > 75)
 	{
 		std::cerr << "Client " << _id.Username << " has entered a wrong UserName." << std::endl;
 		return (false);
 	}
 	//TODO: Check if new UserName isn't already taken in the server and in channels --- Same function as in Nickname
-	if (_id.certify == true)
-	{
-		std::cerr << "462 ERR_ALREADYREGISTERED :Unauthorized command (already registered) "<< std::endl;
-		return (false);
-	}
-	_id.Username = name;
-	std::cout << "Client " << _fd << " has is now known as : " << _id.Username << std::endl;
+	_id.Username = username;
+	std::cout << "Client " << _fd << " is now known as : " << _id.Username << std::endl;
     return (true);
 }
 
@@ -129,18 +208,6 @@ std::string Client::getPrefix() const {
 /*
 PASS après enregistrement
 Selon RFC 2812, la commande PASS « MUST be sent before any attempt to register the connection is made » ; si elle arrive après l’enregistrement, le serveur renvoie
-
-NICK nouveauPseudo  
-provoque :
-
-une vérification que nouveauPseudo n’est pas déjà pris (sinon ERR_NICKNAMEINUSE 433),
-un changement effectif de votre identifiant visible sur le réseau.
-Si vous ré–émettez NICK avec le même pseudo, le serveur peut tout simplement 
-l’ignorer ou vous renvoyer un RPL_NICKCHANGE, mais n’émettra pas d’erreur « already registered » pour cette commande 
-DataTracker IETF
-.
-
-
 */
 
 /**
@@ -152,7 +219,10 @@ bool Client::checkIdentification()
 {
 	if (_id.certify == false && _buff.find("NICK") == std::string::npos\
 		&& _buff.find("USER") == std::string::npos)
+	{
+		std::cerr << "ERR_NOTREGISTERED :You have not registered" << std::endl; // TODO: Send this error to the client
 		return false;
+	}
 	if (_buff.find("NICK") != std::string::npos)
 	{
 		setNick(_buff.substr(_buff.find("NICK") + 5));
@@ -165,7 +235,6 @@ bool Client::checkIdentification()
 	}
 	if (_id.Username.length() > 0  && _id.Nickname.length() > 0)
 		_id.certify = true;
-    std::cout << "id.certify : " << _id.certify << std::endl;
 	return true;
 }
 /**
@@ -177,14 +246,12 @@ bool Client::checkIdentification()
  */
 bool Client::go_command(std::string arg)
 {
-    std::cout << "Here is arg [" << arg << "]" << std::endl;
 	std::string command[4] = {"KICK", "INVITE", "TOPIC", "MODE"};
 	for (int i = 0; i < 4; i++)
 	{
 		if (arg.find(command[i]) != std::string::npos)
 		{
 			std::cout << "Command found : " << command[i] << std::endl;
-			
 			return true;
 		}
 	}
@@ -219,29 +286,24 @@ bool Client::listen() {
 	buffer[bytes_read] = '\0';
 	// Concatenate the buffer to the client's buffer
 	_buff.append(buffer);
-    std::cout << "Here is buff : [" << _buff << "]\n\n" << std::endl; 
 	// Check identification
 	if (checkIdentification() == false)
     {
         _buff.erase(0, _buff.size());
-        std::cerr << "out here" << std::endl;
 		return true;
     }
 	// Check if the buffer contains a complete command
     size_t pos;
-	std::cout << "Here is buff : [" << _buff << "]" << std::endl;
     while ((pos = _buff.find("\r\n")) != std::string::npos) {
-		std::cout << "pos : " << pos << std::endl;
         std::string arg = _buff.substr(0, pos);
         _buff.erase(0, pos + 2);
-		// Check if the command is valid
-		// TODO: Parse command and send it to person C
+		// TODO: Parse command and send it to person C + change this function name
         go_command(arg);
 		// Valid packet received
         packetRecieption(*this, arg);
         
     }
-	 std::cout << "END :: Here is buff : [" << _buff << "]" << std::endl;
+	std::cout << "END :: Here is buff : [" << _buff << "]" << std::endl;
     return true;
 }
 
