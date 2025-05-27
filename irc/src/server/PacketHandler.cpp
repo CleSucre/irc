@@ -1,10 +1,16 @@
 #include "Channel.hpp"
+#include "InviteCommand.hpp"
 #include "JoinCommand.hpp"
+#include "KickCommand.hpp"
+#include "ModeCommand.hpp"
+#include "PartCommand.hpp"
+#include "PrivmsgCommand.hpp"
+#include "TopicCommand.hpp"
 
 CommandBase *getCommand(Client& client, const std::string& inputLine) {
 	std::string line = inputLine;
 
-	std::vector<std::string> tokens = split(line, ':');
+	std::vector<std::string> tokens = split(line, ' ');
 
 	if (tokens.empty())
 		return NULL;
@@ -12,8 +18,20 @@ CommandBase *getCommand(Client& client, const std::string& inputLine) {
 	if (tokens[0][0] == ':' && tokens.size() >= 2)
 		tokens.erase(tokens.begin());
 
-	if (tokens[0] == "JOIN") {
+	if (tokens[0] == "INVITE") {
+		return new InviteCommand(client, tokens);
+	} else if (tokens[0] == "JOIN") {
 		return new JoinCommand(client, tokens);
+	} else if (tokens[0] == "KICK") {
+		return new KickCommand(client, tokens);
+	} else if (tokens[0] == "MODE") {
+		return new ModeCommand(client, tokens);
+	} else if (tokens[0] == "PART") {
+		return new PartCommand(client, tokens);
+	} else if (tokens[0] == "PRIVMSG") {
+		return new PrivmsgCommand(client, tokens);
+	} else if (tokens[0] == "TOPIC") {
+		return new TopicCommand(client, tokens);
 	}
 	return NULL;
 }
@@ -28,9 +46,7 @@ void packetRecieption(Client& client, const std::string& packet) {
 	std::cout << "Packet received from client " << client.getIp() << ": " << packet << std::endl;
 	CommandBase *cmd = getCommand(client, packet);
 
-	std::cout << "DEBUG 1" << std::endl;
 	if (cmd) {
-		std::cout << "DEBUG 2" << std::endl;
 		std::string result = cmd->execute();
 		if (!result.empty()) {
 			client.sendMessage(result);

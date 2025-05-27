@@ -6,6 +6,7 @@
 #include <vector>
 #include "Server.hpp"
 #include "Utils.hpp"
+#include "Response.hpp"
 
 class CommandBase {
     protected:
