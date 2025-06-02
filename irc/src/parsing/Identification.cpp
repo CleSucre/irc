@@ -10,9 +10,15 @@
 bool Client::setNick(const std::string &name)
 {
     if (name.length() < 1)
+	{
+		std::cerr << "Client " << _fd << " has entered an empty NickName." << std::endl;
+		sendMessage("ERR_INVALIDNICKNAME :Invalid NickName, your Nickname will not change\r\n");
 		return false;
+	}
 	else if (name.length() > 10 || name.find(" ") != std::string::npos)
 	{
+		std::cerr << "ICI FDP" << std::endl;
+		std::cerr  << "[" << name << "]" <<  std::endl;
 		std::cerr << "Client " << _fd << " has entered a wrong NickName : " << name << std::endl;
 		sendMessage("ERR_INVALIDNICKNAME :Invalid NickName, your Nickname will not change\r\n");
 		return false;
