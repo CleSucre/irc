@@ -123,7 +123,7 @@ bool Client::listen() {
     }
 
     if (bytes_read <= 0) {
-        std::cerr << "Client disconnected or error" << std::endl;
+        std::cerr << "Client " << _ip << " disconnected or error occurred." << std::endl;
         return false;
     }
 	buffer[bytes_read] = '\0';

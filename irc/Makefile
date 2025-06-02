@@ -2,7 +2,8 @@ NAME	= ircserv
 BOT_NAME = bot
 
 CXX	= c++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -Iincludes -g
+INCLUDES = $(shell find $(INC_DIR) -type d)
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -g $(addprefix -I, $(INCLUDES))
 BOTCXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -Ibot_includes -g
 
 LDLIBS		= -lssl -lcrypto
@@ -22,7 +23,15 @@ BOT_OBJ = $(BOT_SRC:$(BOT_SRC_DIR)/%.cpp=$(BOT_OBJ_DIR)/%.o)
 
 SRCS	= main.cpp \
 			server/Server.cpp server/PacketHandler.cpp \
-			server/Channel.cpp server/Command.cpp \
+			server/Channel.cpp \
+			server/commands/CommandBase.cpp \
+			server/commands/InviteCommand.cpp \
+			server/commands/JoinCommand.cpp \
+			server/commands/KickCommand.cpp \
+			server/commands/ModeCommand.cpp \
+			server/commands/PartCommand.cpp \
+			server/commands/PrivmsgCommand.cpp \
+			server/commands/TopicCommand.cpp \
 			client/Client.cpp \
 			Utils.cpp \
 			parsing/Identification.cpp
@@ -69,4 +78,7 @@ fclean: clean cleanbot
 
 re: fclean all
 
-.PHONY: all clean fclean re bot cleanbot
+debug:
+	@echo $(INCLUDES)
+
+.PHONY: all clean fclean re debug bot cleanbot
