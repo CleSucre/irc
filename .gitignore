@@ -14,3 +14,7 @@ irc/objs/
 # SSL certificates
 
 irc/ssl/
+
+# Tests
+
+irc/tests/
