@@ -12,23 +12,23 @@ std::string PartCommand::execute() {
     Server *server = _client.getServer();
 	std::string serverName = server->getName();
 	if (_cmd.size() < 2) {
-		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "PART"));
+		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "PART") + "\n");
 		return "";
 	}
 	std::vector<std::string> channels = split(_cmd[1], ',');
-	std::string reason = (_cmd.size() >= 3) ? joinFirstN(_cmd, 2) : " "; // mettre tout les arg de _cmd en un: ""
+	std::string reason = (_cmd.size() >= 3) ? joinFirstN(_cmd, 2) : " ";
 
 	for (size_t i = 0; i < channels.size(); ++i) {
 		Channel* channel = server->getChannelByName(channels[i]);
 		if (!channel) {
-			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channels[i]));
+			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channels[i]) + "\n");
 			continue;
 		}
 		if (channel->getRole(&_client) < 0) {
-			_client.sendMessage(":" + serverName + " " + ERR_NOTONCHANNEL(_client.getNick(), channels[i]));
+			_client.sendMessage(":" + serverName + " " + ERR_NOTONCHANNEL(_client.getNick(), channels[i]) + "\n");
 			continue;
 		}
-		std::string msg = ":" + _client.getPrefix() + " PART " + channels[i];
+		std::string msg = ":" + _client.getPrefix() + " PART " + channels[i] + "\n";
 		if (!reason.empty()) msg += " :" + reason;
 		channel->broadcast(_client, msg);
 		channel->removeUser(&_client);

@@ -51,6 +51,7 @@ class Server {
         const std::string& getName() const;
 
         bool addClient(Client* client);
+        std::vector<Client*> getAllClients();
         Client *getClientByName(const std::string& name);
 
         bool addChannel(Channel* channel);

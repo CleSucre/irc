@@ -1,0 +1,14 @@
+#ifndef LISTCOMMAND_HPP
+#define LISTCOMMAND_HPP
+
+#include "CommandBase.hpp"
+
+class ListCommand : public CommandBase {
+    public:
+        ListCommand(Client& client, const std::vector<std::string>& cmd);
+        virtual ~ListCommand();
+
+        virtual std::string execute();
+};
+
+#endif // LISTCOMMAND_HPP
