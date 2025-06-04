@@ -79,6 +79,8 @@ class Channel {
 
 		unsigned int getSize();
 
+		unsigned int getNbrMember();
+
 		void broadcast(const Client& sender, const std::string& message);
 };
 

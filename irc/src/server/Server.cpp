@@ -23,7 +23,7 @@ Server::~Server() {
 
 /**
  * @brief Retrieves the server name
- * 
+ *
  * @return const std::string& The server name
  */
 const std::string& Server::getName() const {
@@ -32,10 +32,10 @@ const std::string& Server::getName() const {
 
 /**
  * @brief Sets up the SSL context
- * 
+ *
  * @param certFile Path to the certificate file
  * @param keyFile Path to the key file
- * 
+ *
  * @return bool true on success, false on failure
  */
 bool Server::setupSSLContext(const char* certFile, const char* keyFile) {
@@ -76,7 +76,7 @@ bool Server::setupSSLContext(const char* certFile, const char* keyFile) {
 
 /**
  * @brief Initializes the server socket
- * 
+ *
  * @return bool true on success, false on failure
  */
 bool Server::setupSocket() {
@@ -97,7 +97,7 @@ bool Server::setupSocket() {
 
 /**
  * @brief Binds the server socket to the specified port
- * 
+ *
  * @return bool true on success, false on failure
  */
 bool Server::bindSocket() {
@@ -115,7 +115,7 @@ bool Server::bindSocket() {
 
 /**
  * @brief Listens for incoming connections on the server socket
- * 
+ *
  * @return bool true on success, false on failure
  */
 bool Server::listenSocket() {
@@ -129,9 +129,9 @@ bool Server::listenSocket() {
 
 /**
  * @brief Adds a new client to the server after a successful connection
- * 
+ *
  * @param client The client to add
- * 
+ *
  * @return bool true on success, false on failure
  */
 bool Server::addClient(Client* client) {
@@ -147,10 +147,19 @@ bool Server::addClient(Client* client) {
 }
 
 /**
+ * @brief Retrieves all clients on the server
+ *
+ * @return std::vector<Client*> A vector of pointers to all clients
+ */
+std::vector<Client*> Server::getAllClients() {
+    return _clients;
+}
+
+/**
  * @brief Retrieves a client by its name
- * 
+ *
  * @param name The name of the client to retrieve
- * 
+ *
  * @return Client* Pointer to the client, or NULL if not found
  */
 Client* Server::getClientByName(const std::string& name) {
@@ -164,9 +173,9 @@ Client* Server::getClientByName(const std::string& name) {
 
 /**
  * @brief Adds a new channel to the server
- * 
+ *
  * @param channel The channel to add
- * 
+ *
  * @return bool true on success, false on failure
  */
 bool Server::addChannel(Channel* channel) {
@@ -176,9 +185,9 @@ bool Server::addChannel(Channel* channel) {
 
 /**
  * @brief Removes a channel from the server
- * 
+ *
  * @param channel The channel to remove
- * 
+ *
  * @return bool true on success, false on failure
  */
 bool Server::removeChannel(Channel* channel) {
@@ -194,7 +203,7 @@ bool Server::removeChannel(Channel* channel) {
 
 /**
  * @brief Retrieves all channels on the server
- * 
+ *
  * @return std::vector<Channel*> A vector of pointers to all channels
  */
 std::vector<Channel*> Server::getAllChannels() {
@@ -203,9 +212,9 @@ std::vector<Channel*> Server::getAllChannels() {
 
 /**
  * @brief Retrieves a channel by its name
- * 
+ *
  * @param name The name of the channel to retrieve
- * 
+ *
  * @return Channel* Pointer to the channel, or NULL if not found
  */
 Channel* Server::getChannelByName(const std::string& name) {
@@ -219,7 +228,7 @@ Channel* Server::getChannelByName(const std::string& name) {
 
 /**
  * @brief Resets the file descriptor set for select
- * 
+ *
  * @param read_fds The file descriptor set to reset
  * @param max_fd The maximum file descriptor in the set
  */
@@ -239,9 +248,9 @@ void Server::resetReadFds(fd_set& read_fds, int& max_fd) {
 
 /**
  * @brief Processes a new client connection
- * 
+ *
  * @param _server_fd The server file descriptor to accept connections from
- * 
+ *
  * @return bool true on success, false on failure
  */
 bool Server::processNewClient(int _server_fd) {
@@ -281,10 +290,10 @@ bool Server::processNewClient(int _server_fd) {
 
 /**
  * @brief Processes the file descriptors for incoming connections and messages
- * 
+ *
  * @param read_fds The file descriptor set to process
  * @param max_fd The maximum file descriptor in the set
- * 
+ *
  * @return bool true on success, false on failure
  */
 bool Server::processFds(fd_set read_fds, int max_fd) {

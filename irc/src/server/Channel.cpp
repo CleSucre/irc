@@ -51,7 +51,7 @@ void Channel::setModeL(unsigned int limit) {
 
 /**
  * @brief Get a string representation of the channel modes.
- * 
+ *
  * @param isOperator Indicates if the client is an operator, if not, the password and user limit will not be included.
  * @return std::string The string representation of the channel modes.
  */
@@ -289,6 +289,15 @@ bool Channel::isEmpty() {
 
 unsigned int Channel::getSize() {
 	return _user.size();
+}
+
+unsigned int Channel::getNbrMember() {
+	unsigned int nbr = 0;
+
+	for (std::vector<std::pair<Client*, int> >::const_iterator it = _user.begin(); it != _user.end(); ++it) {
+        if (it->second >= 1) {nbr++;}
+    }
+	return nbr;
 }
 
 void Channel::broadcast(const Client& sender, const std::string& message) {

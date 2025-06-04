@@ -2,11 +2,13 @@
 #include "InviteCommand.hpp"
 #include "JoinCommand.hpp"
 #include "KickCommand.hpp"
+#include "ListCommand.hpp"
 #include "ModeCommand.hpp"
 #include "NickCommand.hpp"
 #include "PartCommand.hpp"
 #include "PrivmsgCommand.hpp"
 #include "TopicCommand.hpp"
+#include "WhoCommand.hpp"
 #include "UserCommand.hpp"
 
 CommandBase *getCommand(Client& client, const std::string& inputLine) {
@@ -38,6 +40,10 @@ CommandBase *getCommand(Client& client, const std::string& inputLine) {
 		return new PrivmsgCommand(client, tokens);
 	} else if (tokens[0] == "TOPIC") {
 		return new TopicCommand(client, tokens);
+	} else if (tokens[0] == "LIST") {
+		return new ListCommand(client, tokens);
+	} else if (tokens[0] == "TOPIC") {
+		return new WhoCommand(client, tokens);
 	}
 	return NULL;
 }
