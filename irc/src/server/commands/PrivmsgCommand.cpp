@@ -1,7 +1,7 @@
 #include "PrivmsgCommand.hpp"
 
 PrivmsgCommand::PrivmsgCommand(Client& client, const std::vector<std::string>& cmd)
-    : CommandBase(client, cmd) {}
+    : CommandBase(client, cmd, true) {}
 
 PrivmsgCommand::~PrivmsgCommand() {}
 

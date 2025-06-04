@@ -4,10 +4,12 @@
 #include "KickCommand.hpp"
 #include "ListCommand.hpp"
 #include "ModeCommand.hpp"
+#include "NickCommand.hpp"
 #include "PartCommand.hpp"
 #include "PrivmsgCommand.hpp"
 #include "TopicCommand.hpp"
 #include "WhoCommand.hpp"
+#include "UserCommand.hpp"
 
 CommandBase *getCommand(Client& client, const std::string& inputLine) {
 	std::string line = inputLine;
@@ -28,6 +30,10 @@ CommandBase *getCommand(Client& client, const std::string& inputLine) {
 		return new KickCommand(client, tokens);
 	} else if (tokens[0] == "MODE") {
 		return new ModeCommand(client, tokens);
+	} else if (tokens[0] == "NICK") {
+		return new NickCommand(client, tokens);
+	} else if (tokens[0] == "USER") {
+		return new UserCommand(client, tokens);
 	} else if (tokens[0] == "PART") {
 		return new PartCommand(client, tokens);
 	} else if (tokens[0] == "PRIVMSG") {
@@ -53,7 +59,7 @@ void packetRecieption(Client& client, const std::string& packet) {
 	CommandBase *cmd = getCommand(client, packet);
 
 	if (cmd) {
-		std::string result = cmd->execute();
+		std::string result = cmd->pre_execute();
 		if (!result.empty()) {
 			client.sendMessage(result);
 		}
@@ -61,11 +67,3 @@ void packetRecieption(Client& client, const std::string& packet) {
 	}
 	//TODO: Handle messages?
 }
-
-// KICK		KICK <channel> <user> [:reason]
-// INVITE	INVITE <user> <channel>
-// MODE		MODE <channel> <flags> [args]
-// TOPIC	TOPIC <channel> [:topic]
-
-// JOIN		JOIN <channel> [key]
-// PRIVMSG	PRIVMSG target [:message]

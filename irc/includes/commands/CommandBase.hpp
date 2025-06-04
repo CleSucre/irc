@@ -12,17 +12,20 @@ class CommandBase {
     protected:
         Client& _client;
         std::vector<std::string> _cmd;
+        bool _needAuth;
 
         Client& getClient() const;
         Server *getServer() const;
+        bool needAuth() const;
 
         std::string getParameter(size_t index) const;
 
+        virtual std::string execute() = 0;
     public:
-        CommandBase(Client& client, const std::vector<std::string>& cmd);
+        CommandBase(Client& client, const std::vector<std::string>& cmd, bool needAuth);
         virtual ~CommandBase();
 
-        virtual std::string execute() = 0;
+        std::string pre_execute();
 };
 
 #endif // COMMANDBASE_HPP

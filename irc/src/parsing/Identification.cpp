@@ -14,7 +14,6 @@ bool Client::setNick(const std::string &name)
 	else if (name.length() > 10 || name.find(" ") != std::string::npos)
 	{
 		std::cerr << "Client " << _fd << " has entered a wrong NickName : " << name << std::endl;
-		sendMessage("ERR_INVALIDNICKNAME :Invalid NickName, your Nickname will not change\r\n");
 		return false;
 	}
     //TODO: Check if new NickName isn't already taken in the server and in channels

@@ -1,7 +1,7 @@
 #include "ModeCommand.hpp"
 
 ModeCommand::ModeCommand(Client& client, const std::vector<std::string>& cmd)
-    : CommandBase(client, cmd) {}
+    : CommandBase(client, cmd, true) {}
 
 ModeCommand::~ModeCommand() {}
 
