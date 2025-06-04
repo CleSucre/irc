@@ -11,12 +11,12 @@ class Client
 		size_t _last_message;
 	public:
 		Client();
-		Client(const std::string &, const std::string &, const std::string &hostame, const std::string &, size_t id);
+		Client(const std::string &, const std::string &, size_t id);
 		Client(const Client &old);
 		Client &operator=(const Client &old);
 		~Client();
 
-		
+
 
 
 };
