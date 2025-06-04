@@ -1,7 +1,7 @@
 #include "JoinCommand.hpp"
 
 JoinCommand::JoinCommand(Client& client, const std::vector<std::string>& cmd)
-    : CommandBase(client, cmd) {}
+    : CommandBase(client, cmd, true) {}
 
 JoinCommand::~JoinCommand() {}
 

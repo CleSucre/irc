@@ -1,7 +1,7 @@
 #include "TopicCommand.hpp"
 
 TopicCommand::TopicCommand(Client& client, const std::vector<std::string>& cmd)
-    : CommandBase(client, cmd) {}
+    : CommandBase(client, cmd, true) {}
 
 TopicCommand::~TopicCommand() {}
 

@@ -1,7 +1,7 @@
 #include "PartCommand.hpp"
 
 PartCommand::PartCommand(Client& client, const std::vector<std::string>& cmd)
-    : CommandBase(client, cmd) {}
+    : CommandBase(client, cmd, true) {}
 
 PartCommand::~PartCommand() {}
 

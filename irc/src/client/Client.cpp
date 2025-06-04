@@ -129,6 +129,7 @@ bool Client::listen() {
 	buffer[bytes_read] = '\0';
 	// Concatenate the buffer to the client's buffer
 	_buff.append(buffer);
+
 	// Check identification
 	if (checkIdentification() == false)
     {

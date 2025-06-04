@@ -1,7 +1,7 @@
 #include "KickCommand.hpp"
 
 KickCommand::KickCommand(Client& client, const std::vector<std::string>& cmd)
-    : CommandBase(client, cmd) {}
+    : CommandBase(client, cmd, true) {}
 
 KickCommand::~KickCommand() {}
 

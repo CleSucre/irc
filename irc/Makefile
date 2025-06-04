@@ -20,9 +20,11 @@ SRCS	= main.cpp \
 			server/commands/JoinCommand.cpp \
 			server/commands/KickCommand.cpp \
 			server/commands/ModeCommand.cpp \
+			server/commands/NickCommand.cpp \
 			server/commands/PartCommand.cpp \
 			server/commands/PrivmsgCommand.cpp \
 			server/commands/TopicCommand.cpp \
+			server/commands/UserCommand.cpp \
 			client/Client.cpp \
 			Utils.cpp \
 			parsing/Identification.cpp

@@ -1,7 +1,7 @@
 #include "InviteCommand.hpp"
 
 InviteCommand::InviteCommand(Client& client, const std::vector<std::string>& cmd)
-    : CommandBase(client, cmd) {}
+    : CommandBase(client, cmd, true) {}
 
 InviteCommand::~InviteCommand() {}
 
@@ -9,6 +9,7 @@ InviteCommand::~InviteCommand() {}
  * @brief INVITE <user> <channel>
  */
 std::string InviteCommand::execute() {
+
     Server *server = _client.getServer();
 	std::string serverName = server->getName();
 	if (_cmd.size() < 3) {
