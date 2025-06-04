@@ -17,7 +17,7 @@ INC_DIR = includes
 
 BOT_SRC_DIR = bot_src
 BOT_INC = bot_includes
-BOT_SRC = bot_src/main.cpp
+BOT_SRC = bot_src/main.cpp bot_src/Bot.cpp bot_src/Client.cpp bot_src/Channel.cpp
 BOT_OBJ_DIR = bot_objs
 BOT_OBJ = $(BOT_SRC:$(BOT_SRC_DIR)/%.cpp=$(BOT_OBJ_DIR)/%.o)
 

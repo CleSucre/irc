@@ -1,0 +1,18 @@
+#pragma once
+
+#include "Bot.hpp"
+
+class Channel
+{
+	private:
+		std::string _name;
+		size_t _id;
+		std::vector<Client> _clients;
+	public:
+		Channel();
+		Channel(const std::string &name, size_t id);
+		Channel(const Channel &old);
+		Channel &operator=(const Channel &old);
+		~Channel();
+
+};
