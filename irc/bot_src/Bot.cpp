@@ -35,6 +35,7 @@ void copy_list(std::vector<std::string> &src, std::vector<Channel> &dest)
 				break ;
 			}
 		}
+		//////////////// TODO: cut src string at name position, currently it will add the whole string
 		if (!match)
 			dest.push_back(Channel(*it, dest.size() + 1));
 	}
@@ -66,7 +67,7 @@ void Bot::list_channels()
 		}
 		buffer[len] = '\0';
 		channel_nb++;
-		std::cout << "Received: " << buffer << std::endl; //TODO:Debug message
+		std::cout << "Received: " << buffer << std::endl; // TODO: Debug message
 		std::cout << buffer;
 		channels.push_back(std::string(buffer));
 	}
@@ -76,8 +77,73 @@ void Bot::list_channels()
 		copy_list(channels, _channel);
 	}
 	else
-		std::cout << "No new channels found.\n";  //TODO:Debug message
+		std::cout << "No new channels found.\n";  // TODO: Debug message
 }
+
+void copy_users(std::vector<std::string> &src, std::vector<Client> &dest)
+{
+
+	for (std::vector<std::string>::iterator it = src.begin(); it != src.end(); ++it)
+	{
+		if(it->empty())
+			continue;
+		bool match = false;
+		for(std::vector<Client>::iterator jt = dest.begin(); jt != dest.end(); ++jt)
+		{
+			if (jt->getUsername() == *it)
+			{
+				match = true;
+				break ;
+			}
+		}
+		//////////////// TODO: cut src string at name position, currently it will add the whole string
+		if (!match)
+		{
+			size_t id = dest.size() + 1; // Assign a new ID based on the current size of the vector
+			dest.push_back(Client(*it, "unknown", id));
+			std::cout << "New user added: " << *it << " with ID: " << id << "\n"; // TODO: Debug message
+		}
+	}
+}
+
+void Bot::list_users()
+{
+	size_t user_nb = 0;
+	char buffer[512] = {0};
+	std::vector<std::string> users;
+	std::cout << "Get server users\n"; //TODO:Debug message
+	for (std::vector<Channel>::iterator it = _channel.begin(); it != _channel.end(); ++it)
+	{
+		std::string channelName = it->getName();
+		std::cout << "Channel: " << channelName << "\n"; // TODO: Debug message
+		std::string whoCmd = "WHO " + channelName + "\r\n";
+		send(_sock, whoCmd.c_str(), whoCmd.size(), 0);
+
+		//315 is the response code for "End of /WHO command"
+		// It could be change by END or other code, but 315 is the most common
+		while (strstr(buffer, "315") == NULL)
+		{
+			int len = recv(_sock, buffer, sizeof(buffer)-1, 0);
+			if (len <= 0)
+			{
+			    std::cerr << "Connection closed or error occurred\n";
+			    break;
+			}
+			buffer[len] = '\0';
+			user_nb++;
+			std::cout << "Received: " << buffer << std::endl; // TODO: Debug message
+			users.push_back(std::string(buffer));
+		}
+		if (user_nb > 0)
+		{
+			std::cout << "Users found: " << user_nb << "\n";  //TODO:Debug message
+			copy_users(users, it->getClients()); //TODO: Change to a vector of Client
+		}
+		else
+			std::cout << "No users found.\n";  // TODO: Debug message
+	}
+}
+
 
 /**
  * @brief Loop to communicate with the IRC server
@@ -90,11 +156,7 @@ void Bot::communication_loop()
     while (true) {
 		sleep(2);
 		list_channels();
-		// Check client by WHO
-
-		// Check if more client than already in vector 
-
-		// ADD all client by channel in vector
+		list_users();
 
 		// Check messages
 

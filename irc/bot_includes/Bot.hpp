@@ -40,7 +40,7 @@ class Bot
 		int socket_creation(int argc, char* argv[]);
 		void communication_loop();
 		void list_channels();
-
+		void list_users();
 		
 };
 

@@ -2,6 +2,10 @@
 
 #include "Bot.hpp"
 
+#define OPERATOR 1
+#define GUEST 2
+
+class Channel; 
 class Client
 {
 	private:
@@ -9,6 +13,7 @@ class Client
 		std::string _username;
 		size_t _id;
 		size_t _last_message;
+		int	grade;
 	public:
 		Client();
 		Client(const std::string &, const std::string &, size_t id);
@@ -16,7 +21,11 @@ class Client
 		Client &operator=(const Client &old);
 		~Client();
 
-
+		const std::string &getNick() const;
+		const std::string &getUsername() const;
+		size_t getId() const;
+		size_t getLastMessage() const;
+		int getGrade() const;
 
 
 };

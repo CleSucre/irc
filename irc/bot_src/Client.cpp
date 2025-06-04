@@ -25,3 +25,19 @@ Client::~Client() {
 	_last_message = 0;
 }
 
+
+const std::string &Client::getNick() const {
+	return _nick;
+}
+const std::string &Client::getUsername() const {
+	return _username;
+}
+size_t Client::getId() const {
+	return _id;
+}
+size_t Client::getLastMessage() const {
+	return _last_message;
+}
+int Client::getGrade() const {
+	return grade;
+}

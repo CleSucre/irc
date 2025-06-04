@@ -25,3 +25,7 @@ const std::string &Channel::getName() const {
 size_t Channel::getId() const {
 	return _id;
 }
+
+std::vector<Client> &Channel::getClients() {
+	return _clients;
+}

@@ -2,6 +2,8 @@
 
 #include "Bot.hpp"
 
+class Client;
+
 class Channel
 {
 	private:
@@ -16,6 +18,7 @@ class Channel
 		~Channel();
 		const std::string &getName() const;
 		size_t getId() const;
+		std::vector<Client> &getClients();
 
 
 };
