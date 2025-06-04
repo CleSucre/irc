@@ -10,13 +10,16 @@ Bot::~Bot()
 }
 
 /**
- * @brief Copy a list of strings to a vector of pairs
- * This function copies unique strings from the source vector to the destination vector,
- * ensuring that each string is paired with a size_t value initialized to is id.
- * @param src Source vector of strings
- * @param dest Destination vector of pairs (string, size_t)
+ * @brief Copy a list of channel names to a vector of Channel objects
+ * @param src Source vector of channel names
+ * @param dest Destination vector of Channel objects
+ * @note This function does not handle duplicate channel names in the source vector.
+ * This function checks if each channel name in the source vector exists in the destination vector.
+ * If it does not exist, it creates a new Channel object and adds it to the destination vector.
+ * The ID is set to the current size of the destination vector plus one.
+ * It will only add unique channel names to the destination vector.
  */
-void copy_list(std::vector<std::string> &src, std::vector<std::pair<std::string, size_t> > &dest)
+void copy_list(std::vector<std::string> &src, std::vector<Channel> &dest)
 {
 
 	for (std::vector<std::string>::iterator it = src.begin(); it != src.end(); ++it)
@@ -24,16 +27,16 @@ void copy_list(std::vector<std::string> &src, std::vector<std::pair<std::string,
 		if(it->empty())
 			continue;
 		bool match = false;
-		for(std::vector<std::pair<std::string, size_t> >::iterator jt = dest.begin(); jt != dest.end(); ++jt)
+		for(std::vector<Channel>::iterator jt = dest.begin(); jt != dest.end(); ++jt)
 		{
-			if (jt->first == *it)
+			if (jt->getName() == *it)
 			{
 				match = true;
 				break ;
 			}
 		}
 		if (!match)
-			dest.push_back(std::make_pair(*it, dest.size()));
+			dest.push_back(Channel(*it, dest.size() + 1));
 	}
 }
 
@@ -48,7 +51,7 @@ void Bot::list_channels()
 	char buffer[512] = {0};
 	std::vector<std::string> channels;
 	
-	std::cout << "Get server list\n";
+	std::cout << "Get server list\n"; //TODO:Debug message
 	send(_sock, "LIST\r\n", 6, 0);
 
 	// 323 is the response code for "End of /LIST command"
@@ -63,17 +66,17 @@ void Bot::list_channels()
 		}
 		buffer[len] = '\0';
 		channel_nb++;
-		std::cout << "Received: " << buffer << std::endl;
+		std::cout << "Received: " << buffer << std::endl; //TODO:Debug message
 		std::cout << buffer;
 		channels.push_back(std::string(buffer));
 	}
 	if (channel_nb > _channel_known)
 	{
-		std::cout << "New channels found: " << channel_nb - _channel_known << "\n";
-		copy_list(channels, _channel_list);
+		std::cout << "New channels found: " << channel_nb - _channel_known << "\n";  //TODO:Debug message
+		copy_list(channels, _channel);
 	}
 	else
-		std::cout << "No new channels found.\n";
+		std::cout << "No new channels found.\n";  //TODO:Debug message
 }
 
 /**
@@ -86,7 +89,7 @@ void Bot::communication_loop()
     // Loop to send LIST, USER and check PRIVMSG
     while (true) {
 		sleep(2);
-       
+		list_channels();
 		// Check client by WHO
 
 		// Check if more client than already in vector 
@@ -97,15 +100,15 @@ void Bot::communication_loop()
 
 		char buffer[512];
         std::string line(buffer);
-        if (line.find("PRIVMSG :") == 0) {
-            std::cout << "Message receive : " << line << std::endl;
+        if (line.find("PRIVMSG :") == 0) { //TODO:Debug message
+            std::cout << "Message receive : " << line << std::endl; //TODO:Debug message
             // std::string token = line.substr(6);
             // std::string pong = "PONG :" + token + "\r\n";
             // send(sock, pong.c_str(), pong.size(), 0);
             // std::cout << ">> " << pong;
         }
 		else
-			std::cout << "No message received\n";
+			std::cout << "No message received\n"; //TODO:Debug message
 	}
     return ;
 }

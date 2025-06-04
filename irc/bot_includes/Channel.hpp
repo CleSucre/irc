@@ -14,5 +14,8 @@ class Channel
 		Channel(const Channel &old);
 		Channel &operator=(const Channel &old);
 		~Channel();
+		const std::string &getName() const;
+		size_t getId() const;
+
 
 };

@@ -19,3 +19,9 @@ Channel::~Channel() {
 	_clients.clear();
 }
 
+const std::string &Channel::getName() const {
+	return _name;
+}
+size_t Channel::getId() const {
+	return _id;
+}
