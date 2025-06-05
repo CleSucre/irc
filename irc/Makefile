@@ -15,12 +15,15 @@ SRC_DIR = src
 OBJ_DIR = objs
 INC_DIR = includes
 
+#========
+# Bot specific variables
 BOT_SRC_DIR = bot_src
 BOT_INC = bot_includes
-BOT_SRC = bot_src/main.cpp bot_src/Bot.cpp bot_src/Client.cpp bot_src/Channel.cpp
+BOT_SRC = bot_src/main.cpp bot_src/Bot.cpp bot_src/Client.cpp bot_src/Channel.cpp \
+			bot_src/CodeMap.cpp
 BOT_OBJ_DIR = bot_objs
 BOT_OBJ = $(BOT_SRC:$(BOT_SRC_DIR)/%.cpp=$(BOT_OBJ_DIR)/%.o)
-
+#========
 SRCS	= main.cpp \
 			server/Server.cpp server/PacketHandler.cpp \
 			server/Channel.cpp \
@@ -54,7 +57,8 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(DIRS)
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
-
+#========
+# Bot specific rules
 bot: $(BOT_NAME)
 
 $(BOT_NAME): $(BOT_OBJ)
@@ -67,7 +71,7 @@ $(BOT_OBJ_DIR):
 
 cleanbot:
 	$(RMDIR) $(BOT_NAME) $(BOT_OBJ_DIR)
-
+#========
 all: $(NAME)
 
 clean:

@@ -20,3 +20,5 @@ irc/ssl/
 irc/tests/
 
 *.o
+ircserv
+bot

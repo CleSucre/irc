@@ -14,6 +14,7 @@
 
 #include "Client.hpp"
 #include "Channel.hpp"
+#include "CodeMap.hpp"
 
 class Channel;
 class Client;
@@ -41,7 +42,9 @@ class Bot
 		void communication_loop();
 		void list_channels();
 		void list_users();
-		
+		void check_flood();
+		void message_reception();
+		void join_channels(std::vector<std::string> &channels);
 };
 
 #endif
