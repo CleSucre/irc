@@ -7,8 +7,10 @@
  * Initializes the mapping of packet codes to their indices.
  */
 CodeMap::CodeMap(){
-	_entry[0] = {4, "322"};
-	_entry[1] = {5, "352"};
+	_entry[0].code_name = "322";
+	_entry[0].packet_index = 4; 
+	_entry[1].code_name = "352";
+	_entry[1].packet_index = 5;
 }
 
 CodeMap::~CodeMap(){}

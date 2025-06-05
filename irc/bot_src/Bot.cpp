@@ -44,7 +44,7 @@ int	parse_packet(std::string &packet, int split_position)
 	}
 	std::vector<std::string> tokens;
 	tokens = split(packet, ' ');
-	if (tokens.size() < split_position) {
+	if (tokens.size() < (size_t) split_position) {
 		std::cerr << "Error: Packet too small." << std::endl;
 		return (-1);
 	}
