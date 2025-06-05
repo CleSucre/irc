@@ -5,6 +5,8 @@
 /**
  * @brief CodeMap constructor
  * Initializes the mapping of packet codes to their indices.
+ * 322 corresponds to the list of channels,
+ * 352 corresponds to the list of users in a channel.
  */
 CodeMap::CodeMap(){
 	_entry[0].code_name = "322";

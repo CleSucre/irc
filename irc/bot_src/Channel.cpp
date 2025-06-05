@@ -29,3 +29,20 @@ size_t Channel::getId() const {
 std::vector<Client> &Channel::getClients() {
 	return _clients;
 }
+
+/**
+ * @brief Find the index of a channel by its name in a vector of channels
+ * @param channels The vector of channels to search
+ * @param channel_name The name of the channel to find
+ * @return The index of the channel if found
+ * @throws std::runtime_error if the channel is not found
+ */
+size_t find_channel_index(const std::vector<Channel> &channels, const std::string &channel_name)
+{
+	for (size_t i = 0; i < channels.size(); ++i)
+	{
+		if (channels[i].getName() == channel_name)
+			return (i);
+	}
+	throw(std::runtime_error("Channel not found"));
+}

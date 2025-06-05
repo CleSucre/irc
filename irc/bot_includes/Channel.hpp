@@ -19,6 +19,5 @@ class Channel
 		const std::string &getName() const;
 		size_t getId() const;
 		std::vector<Client> &getClients();
-
-
+		size_t find_channel_index(const std::vector<Channel> &channels, const std::string &channel_name);
 };

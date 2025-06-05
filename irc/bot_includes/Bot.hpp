@@ -35,6 +35,8 @@ class Bot
 		size_t _channel_known;
 		// Client *_client;
 		std::vector<Channel> _channel;
+		time_t _last_check;
+		static const int	check_interval = 5;
 
 		// std::vector<std::pair<std::string, size_t> > _flood_timer;
 		// std::vector<std::pair<std::string, size_t> > _channel_list;
@@ -46,11 +48,19 @@ class Bot
 		void server_authentification();
 		int socket_creation(int argc, char* argv[]);
 		void communication_loop();
-		void list_channels();
+		// void list_channels();
+		void list_channels_handler(std::string &);
+		void list_users_handler(std::string &packet);
+
 		void list_users();
 		void check_flood();
 		void message_reception();
 		void join_channels(std::vector<std::string> &channels);
+
+		void handle_global_data();
+		void user_command();
 };
+
+size_t find_channel_index(const std::vector<Channel> &channels, const std::string &channel_name);
 
 #endif
