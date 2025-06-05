@@ -4,15 +4,25 @@ UserCommand::UserCommand(Client& client, const std::vector<std::string>& cmd)
     : CommandBase(client, cmd, false) {}
 
 UserCommand::~UserCommand() {
-	
+
 }
 
 /**
  * @brief USER <username> <hostname> <servername> :<realname>
  */
 std::string UserCommand::execute() {
-	if (_client.setUser(getParameter(1))) {
+	std::string username = getParameter(4);
+
+	if (username[0] != ':') {
+		std::cerr << "Client " << _client.getIp() << " has entered a wrong UserName." << std::endl;
+		_client.sendMessage(username + "\r\n");
+		return "";
+	} else {
+		username = substr(username, 1, username.length() - 1);
+	}
+	if (!_client.setUser(username)) {
 		return ERR_NEEDMOREPARAMS(_client.getPrefix(), "USER");
 	}
-	return "001 RPL_WELCOME :Welcome to the Internet Relay Network " + _client.getNick();
+	getClient().checkIdentification();
+	return "";
 }

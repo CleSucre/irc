@@ -50,6 +50,8 @@ class Server {
 
         const std::string& getName() const;
 
+        bool checkPassword(const std::string& password) const;
+
         bool addClient(Client* client);
         std::vector<Client*> getAllClients();
         Client *getClientByName(const std::string& name);

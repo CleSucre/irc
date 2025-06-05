@@ -5,6 +5,7 @@
 #include "ListCommand.hpp"
 #include "ModeCommand.hpp"
 #include "NickCommand.hpp"
+#include "PassCommand.hpp"
 #include "PartCommand.hpp"
 #include "PrivmsgCommand.hpp"
 #include "TopicCommand.hpp"
@@ -34,6 +35,8 @@ CommandBase *getCommand(Client& client, const std::string& inputLine) {
 		return new NickCommand(client, tokens);
 	} else if (tokens[0] == "USER") {
 		return new UserCommand(client, tokens);
+	} else if (tokens[0] == "PASS") {
+		return new PassCommand(client, tokens);
 	} else if (tokens[0] == "PART") {
 		return new PartCommand(client, tokens);
 	} else if (tokens[0] == "PRIVMSG") {

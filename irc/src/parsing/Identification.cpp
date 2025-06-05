@@ -1,5 +1,5 @@
 #include "Client.hpp"
-
+#include "Utils.hpp"
 
 /**
  * @brief Set the NickName of the client
@@ -13,13 +13,13 @@ bool Client::setNick(const std::string &name)
 		return false;
 	else if (name.length() > 10 || name.find(" ") != std::string::npos)
 	{
-		std::cerr << "Client " << _fd << " has entered a wrong NickName : " << name << std::endl;
+		std::cerr << "Client " << _ip << " has entered a wrong NickName : " << name << std::endl;
 		return false;
 	}
     //TODO: Check if new NickName isn't already taken in the server and in channels
 	if (_id.Nickname != name)
 		_id.Nickname = name;
-	std::cout << "Client " << _id.Username << " has entered a new NickName : " << _id.Nickname << std::endl;
+	std::cout << "Client " << _ip << " has entered a new NickName : " << _id.Nickname << std::endl;
 	return true;
 }
 
@@ -33,7 +33,7 @@ bool Client::setNick(const std::string &name)
  */
 static bool isValidUsername(const std::string& username) {
 	size_t len = username.length();
-    if (username.empty() || len >= 9)
+    if (username.empty() || len < 1 || len > 75)
         return false;
     for (std::string::size_type i = 0; i < len; ++i) {
         char c = username[i];
@@ -41,37 +41,6 @@ static bool isValidUsername(const std::string& username) {
             return false;
     }
     return true;
-}
-
-/**
- * @brief Parse the arguments of the USER command
- * 		Fill the username with everything between 3thrd 
- * 		count and last one without first occurence en ':'
- * @param args : arguments to parse
- * @param username : pointer to the username to fill
- * @return true if ok, false if error
- */
-#
-static bool parsecolon(const std::string &args, std::string *res)
-{
-	size_t pos = args.find(' ');
-	if (pos == std::string::npos)
-		return false;
-	if (pos == 0)
-		return false;
-	size_t start = pos + 1;
-	pos = args.find(' ', start);
-	if (pos == std::string::npos)
-		return false;
-	start = pos + 1;
-	pos = args.find(' ', start);
-	if (pos == std::string::npos)
-		return false;
-	std::string username = args.substr(start, pos - start);
-	if (!isValidUsername(username))
-		return false;
-	*res = username;
-	return true;
 }
 
 /**
@@ -83,35 +52,26 @@ static bool parsecolon(const std::string &args, std::string *res)
  * @param name : UserName to set
  * @return true if ok, false if error
  */
-bool Client::setUser(const std::string &args)
+bool Client::setUser(const std::string &username)
 {
 	/**
 		hostname et servername : format d’hôte (lettres, chiffres, points). <= 255 caractères 
 		realname : peut contenir espaces, mais pas \r/\n.
 	 */
 	//Check if the client is already registered
-	if (_id.certify == true || !_id.Username.empty())
-	{
+	if (_id.certify == true || !_id.Username.empty()) {
 		sendMessage("462 ERR_ALREADYREGISTERED :Unauthorized command (already registered)\r\n");
 		std::cerr << "Client " << _id.Username << " is already registered." << std::endl;
 		return (false);
 	}
-	std::string username;
-	if (parsecolon(args, &username) == false)
-	{
-		std::cerr << "Client " << _ip << " " << username << std::endl;
-		sendMessage(username + "\r\n");
-		return (false);
-	}
-	if (username.length() < 1 || username.length() > 75)
-	{
+	if (!isValidUsername(username)) {
 		sendMessage("ERR_INVALIDPARAMS :Invalid username\r\n");
 		std::cerr << "Client " << _id.Username << " has entered a wrong UserName." << std::endl;
 		return (false);
 	}
 	//TODO: Check if new UserName isn't already taken in the server and in channels --- Same function as in Nickname
 	_id.Username = username;
-	std::cout << "Client " << _fd << " is now known as : " << _id.Username << std::endl;
+	std::cout << "Client " << _ip << " is now known as : " << _id.Username << std::endl;
     return (true);
 }
 
@@ -124,9 +84,10 @@ bool Client::checkIdentification()
 {
 	if (_id.certify)
 		return (true);
-	if (!_id.Username.empty() || !_id.Nickname.empty())
+	if (_id.Username.length() > 0 && _id.Nickname.length() > 0 && _id.validPassword)
 	{
-		std::cout << "Client " << _id.Username << " is now identified as " << _id.Nickname << std::endl;
+		std::cout << "Client " << _ip << " is now identified as " << _id.Nickname << std::endl;
+		sendMessage("001 RPL_WELCOME :Welcome to the Internet Relay Network " + _id.Nickname + "\r\n");
 		_id.certify = true;
 	}
 	return (_id.certify);

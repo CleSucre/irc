@@ -6,6 +6,7 @@
 // =============================================*/
 
 Client::Client(Server *server, int fd, char *ip, SSL* ssl) : _server(server), _fd(fd), _ip(ip), _ssl(ssl) {
+   _id.validPassword = false;
    _id.certify = false;
 }
 
@@ -53,7 +54,6 @@ std::string Client::getNick() const
 	return _id.Nickname;
 }
 
-
 /**
  * @brief Get the UserName of the client
  *
@@ -77,6 +77,15 @@ std::string Client::getPrefix() const {
 		prefix = ":" + std::string(_ip);
 	}
 	return prefix;
+}
+
+/**
+ * @brief Set valid password
+ * 
+ * This function sets the validPassword attribute of the client to true.
+ */
+void Client::setValidPassword() {
+	_id.validPassword = true;
 }
 
 /**

@@ -9,7 +9,6 @@ NickCommand::~NickCommand() {}
  * @brief NICK <nickname>
  */
 std::string NickCommand::execute() {
-	std::cout << "Executing NICK command for client: " << _client.getNick() << std::endl;
     Server *server = _client.getServer();
 	std::string serverName = server->getName();
 
@@ -22,5 +21,6 @@ std::string NickCommand::execute() {
 	if (!_client.setNick(newNick)) {
 		return ERR_ERRONEUSNICKNAME(_client.getPrefix(), newNick);
 	}
+	getClient().checkIdentification();
 	return "";
 }
