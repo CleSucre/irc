@@ -34,7 +34,6 @@ Bot::~Bot()
  * :serveur 322 <demandeur> <canal> <nb_utilisateurs> :<topic>
  * Important element : 4th element
  * 
- * 
  */
 int	parse_packet(std::string &packet, int split_position)
 {
@@ -192,7 +191,7 @@ void copy_users(std::vector<std::string> &src, std::vector<Client> &dest)
 		}
 		if (!match)
 		{
-			size_t id = dest.size() + 1; // Assign a new ID based on the current size of the vector
+			size_t id = dest.size() + 1;
 			parse_packet(*it, code_map.getIndex(*it));
 			dest.push_back(Client(*it, "unknown", id));
 			std::cout << "New user added: " << *it << " with ID: " << id << "\n"; // TODO: Debug message
