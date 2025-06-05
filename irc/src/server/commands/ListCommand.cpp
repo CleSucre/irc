@@ -1,7 +1,7 @@
 #include "ListCommand.hpp"
 
 ListCommand::ListCommand(Client& client, const std::vector<std::string>& cmd)
-	: CommandBase(client, cmd) {}
+	: CommandBase(client, cmd, true) {}
 
 ListCommand::~ListCommand() {}
 

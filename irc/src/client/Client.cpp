@@ -79,33 +79,6 @@ std::string Client::getPrefix() const {
 	return prefix;
 }
 
-
-
-/**
- * @brief Check if the command is valid
- * @param arg : input command to check
- *
- * @return true if command is valid
- * @return false if error
- */
-bool Client::go_command(std::string arg)
-{
-	std::string target = split(arg, ' ')[0];
-	std::string command[9] = {"KICK", "INVITE", "TOPIC", "MODE", "JOIN", "LIST", "WHO", "PART", "PRIVMSG"};
-	for (int i = 0; i < 9; i++)
-	{
-		if (target.find(command[i]) != std::string::npos)
-		{
-			std::cout << "Command found : " << command[i] << std::endl;
-			return true;
-		}
-	}
-	sendMessage("ERR_UNKNOWNCOMMAND :Unknown command\r\n");
-	_buff.erase(0, _buff.size());
-	std::cout << "Client " << _fd << " Error in input : " << arg << std::endl;
-	return false;
-}
-
 /**
  * @brief Listens for incoming messages from the client
  *        Read them on a temporary char[BUFFER_SIZE]
@@ -132,19 +105,11 @@ bool Client::listen() {
 	// Concatenate the buffer to the client's buffer
 	_buff.append(buffer);
 
-	// Check identification
-	if (checkIdentification() == false)
-	{
-		_buff.erase(0, _buff.size());
-		return true;
-	}
 	// Check if the buffer contains a complete command
 	size_t pos;
 	while ((pos = _buff.find("\r\n")) != std::string::npos) {
 		std::string arg = _buff.substr(0, pos);
 		_buff.erase(0, pos + 2);
-		// TODO: Parse command and send it to person C + change this function name
-		go_command(arg);
 		// Valid packet received
 		packetRecieption(*this, arg);
 

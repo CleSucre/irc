@@ -54,36 +54,24 @@ static bool isValidUsername(const std::string& username) {
 #
 static bool parsecolon(const std::string &args, std::string *res)
 {
-	std::string::size_type limit;
-	limit = args.find(":");
-	if (limit == std::string::npos)
-	{
-		*res = "ERR_NEEDMOREPARAMS :Not enough parameters";
-		return (false);
-	}
-	std::string check = args.substr(0, limit);
-	std::istringstream iss(check);
-	std::string param;
-	std::vector<std::string> tokens;
-	int count;
-	for (count = 0; iss >> param; count++)
-	{
-		if (count == 0 && isValidUsername(param) == false)
-		{
-			*res = "ERR_INVALIDPARAMS :Invalid username";
-			return (false);
-		}
-		tokens.push_back(param);
-	}
-	if (count < 3)
-	{
-		*res = "ERR_NEEDMOREPARAMS :Not enough parameters";
-		return (false);
-	}
-	for(size_t i = 3; i < tokens.size(); i++)
-		(*res).append(tokens[i] + " ");
-	(*res).append(args.substr(limit + 1));
-	return (true);
+	size_t pos = args.find(' ');
+	if (pos == std::string::npos)
+		return false;
+	if (pos == 0)
+		return false;
+	size_t start = pos + 1;
+	pos = args.find(' ', start);
+	if (pos == std::string::npos)
+		return false;
+	start = pos + 1;
+	pos = args.find(' ', start);
+	if (pos == std::string::npos)
+		return false;
+	std::string username = args.substr(start, pos - start);
+	if (!isValidUsername(username))
+		return false;
+	*res = username;
+	return true;
 }
 
 /**
@@ -102,7 +90,7 @@ bool Client::setUser(const std::string &args)
 		realname : peut contenir espaces, mais pas \r/\n.
 	 */
 	//Check if the client is already registered
-	if (_id.certify == true || _id.Username.length() > 0)
+	if (_id.certify == true || !_id.Username.empty())
 	{
 		sendMessage("462 ERR_ALREADYREGISTERED :Unauthorized command (already registered)\r\n");
 		std::cerr << "Client " << _id.Username << " is already registered." << std::endl;
@@ -111,7 +99,7 @@ bool Client::setUser(const std::string &args)
 	std::string username;
 	if (parsecolon(args, &username) == false)
 	{
-		std::cerr << "Client " << _fd << " " << username << std::endl;
+		std::cerr << "Client " << _ip << " " << username << std::endl;
 		sendMessage(username + "\r\n");
 		return (false);
 	}
@@ -134,36 +122,12 @@ bool Client::setUser(const std::string &args)
  */
 bool Client::checkIdentification()
 {
-	if (_id.certify == false && _buff.find("NICK") == std::string::npos\
-		&& _buff.find("USER") == std::string::npos)
+	if (_id.certify)
+		return (true);
+	if (!_id.Username.empty() || !_id.Nickname.empty())
 	{
-		std::cerr << "Client " << _fd << " is not registered." << std::endl;
-		sendMessage("ERR_NOTREGISTERED :You have not registered\r\n");
-		return false;
-	}
-	if (_buff.find("NICK") != std::string::npos)
-	{
-		if (setNick(_buff.substr(_buff.find("NICK") + 5)) == false)
-		{
-			_buff.erase(0, _buff.size());
-			return false;
-		}
-		_buff.erase(0, _buff.find("\r\n") + 2);
-	}
-	else if (_buff.find("USER") != std::string::npos)
-	{
-		if (setUser(_buff.substr(_buff.find("USER") + 5)) == false)
-		{
-			_buff.erase(0, _buff.size());
-			return false;
-		}
-		_buff.erase(0, _buff.find("\r\n") + 2);
-	}
-	if (_id.Username.length() > 0  && _id.Nickname.length() > 0)
-	{
-		if (_id.certify == false)
-			sendMessage("001 RPL_WELCOME :Welcome to the Internet Relay Network " + _id.Nickname);
+		std::cout << "Client " << _id.Username << " is now identified as " << _id.Nickname << std::endl;
 		_id.certify = true;
 	}
-	return true;
+	return (_id.certify);
 }
