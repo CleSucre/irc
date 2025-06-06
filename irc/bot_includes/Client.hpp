@@ -27,6 +27,11 @@ class Client
 		size_t getId() const;
 		size_t getLastMessage() const;
 		int getGrade() const;
+		void setWarningCount(int count);
+		int getWarningCount() const;
+		void resetLastMessage();
+
+		
 
 
 };

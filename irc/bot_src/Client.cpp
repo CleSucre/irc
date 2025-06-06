@@ -37,15 +37,35 @@ Client::~Client() {
 const std::string &Client::getNick() const {
 	return _nick;
 }
+
 const std::string &Client::getUsername() const {
 	return _username;
 }
+
 size_t Client::getId() const {
 	return _id;
 }
+
 size_t Client::getLastMessage() const {
 	return _last_message;
 }
+
 int Client::getGrade() const {
 	return _grade;
+}
+
+void Client::setWarningCount(int count){
+	_warning_count = count;
+	if (_warning_count < 0) {
+		_warning_count = 0;
+	}
+	return ;
+}
+
+int Client::getWarningCount() const {
+	return _warning_count;
+}
+
+void Client::resetLastMessage() {
+	_last_message = std::time(NULL);
 }

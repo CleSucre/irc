@@ -154,7 +154,7 @@ void Bot::list_users_handler(std::string &packet)
 	try
 	{
 		_current_channel = find_channel_index(_channel, tmp);
-		copy_users(packet, _channel[_current_channel - 1].getClients());
+		copy_users(packet, _channel[_current_channel - 1].getClientsList());
 	}
 	catch (const std::runtime_error &e)
 	{
@@ -164,30 +164,96 @@ void Bot::list_users_handler(std::string &packet)
 }
 
 /**
- * @brief Check for flood conditions
- * This function checks if the bot is flooding the server with messages.
- * If the bot sends too many messages in a short period, it will be disconnected.
- * TODO: modify recv by select
- * 	Server first send code 401, then 315 to end the list
+ * @brief Split a packet message into tokens
+ * @param packet The packet message to split
+ * @return A vector of strings containing the split tokens
+ * This function extracts the username from the packet and returns a vector of strings.
+ * It currently only extracts the username and does not handle other parts of the packet.
+ * @note
+ * A packet message is expected to be in the format:
+ * :username!user@host PRIVMSG #channel :message
  */
-void Bot::message_reception()
-{
-	char buffer[512] = {0};
-	for (int i = 0; i < 10; ++i)
-	{
-		usleep(500);
-		int len = recv(_sock, buffer, sizeof(buffer)-1, 0);
-		if (len <= 0) {
-			std::cerr << "Connection closed or error occurred\n";
-			return;
-		}
-		buffer[len] = '\0';
-		std::string line(buffer);
-		if (line.find("PRIVMSG :") == 0) { 
-			std::cout << "Message received: " << line << std::endl; //TODO:Debug message
-			// Need to parse message, check channel and compare last message time w current time
-		}
 
+/**
+ * @brief Structure to hold message information
+ * This structure holds the username, channel, and message content.
+ * It is used to store the parsed information from a packet message.
+ * @note
+ * The structure is used in the message_reception function to process incoming messages.
+ * It is designed to be simple and efficient for storing message data.
+ * std::string message is used to store the message content, it is here if we want to add more information later.
+ */
+struct t_message {
+	std::string username;
+	std::string channel;
+	std::string message;
+};
+
+/**
+ * @brief Split a packet message into its components
+ * @param packet The packet message to split
+ * @return A t_message structure containing the username, channel, and message content
+ * This function extracts the username, channel, and message content from the packet message.
+ * It uses string manipulation to find the relevant parts of the packet and store them in a t_message structure.
+ * @note
+ * The packet message is expected to be in the format:
+ * :username!user@host PRIVMSG #channel :message
+ * The function assumes that the packet is well-formed and does not perform extensive error checking.
+ */
+t_message split_packet_message(const std::string &packet)
+{
+	t_message msg;
+	msg.username = packet.substr(1, packet.find('!') - 1);
+	size_t start = packet.find("PRIVMSG");
+	start += 8;
+	size_t end = packet.find(' ', start);
+	msg.channel = packet.substr(start, end - start);
+	start = packet.find(':',end) + 1;
+	msg.message = packet.substr(start);
+	return (msg);
+}
+
+
+/**
+ * @brief Handle incoming messages from the IRC server
+ * @param packet The packet message received from the IRC server
+ * @note
+ * This function processes incoming messages from the IRC server.
+ * It checks if the message is from a known user and channel, and handles flood detection.
+ * It updates the last message time for the user and checks for flood conditions.
+ * If a flood is detected, it kicks the user from the channel and sends a private message.
+ * @example:
+ * Example of a packet received:
+ * :username!user@host PRIVMSG #channel :message
+ */
+void Bot::message_reception(std::string &packet)
+{
+	t_message msg = split_packet_message(packet);
+	std::cout << "Message received from " << msg.username << " in channel " << msg.channel << ": " << msg.message << std::endl; // TODO: Debug message
+	try{
+		_current_channel = find_channel_index(_channel, msg.channel);
+		Client &tmp = _channel[_current_channel - 1].getClientbyNick(msg.username);
+		if (tmp.getLastMessage() - std::time(NULL) > check_interval)
+		{
+			int warning_count = tmp.getWarningCount();
+			tmp.setWarningCount(warning_count + 1);
+			if (warning_count >= 3)
+			{
+				std::cout << "Flood detected from user: " << tmp.getNick() << ", disconnecting..." << std::endl; // TODO: Debug message
+				std::string kickCmd = "KICK " + msg.channel + " " + tmp.getNick() + " :Flood detected\r\n";
+				send(_sock, kickCmd.c_str(), kickCmd.size(), 0);
+				usleep(50);
+				std::string privmsg = "PRIVMSG " + msg.username + " :You have been kicked for flooding\r\n";
+				send(_sock, privmsg.c_str(), privmsg.size(), 0);
+				return;
+			}
+		}
+		tmp.resetLastMessage();
+	}
+	catch (const std::runtime_error &e)
+	{
+		std::cerr << "Error finding channel index: " << e.what() << std::endl; //TODO: Debug message
+		return;
 	}
 }
 
@@ -220,6 +286,9 @@ void Bot::handle_global_data()
 		list_channels_handler(packet);
 	else if (packet.find("352") != std::string::npos || packet.find("315") != std::string::npos)
 		list_users_handler(packet);
+	else if (packet.find("PRIVMSG") != std::string::npos)
+		message_reception(packet);
+	
 	// else if (packet.find("PRIVMSG") != std::string::npos)
 	// 	message_reception();
 	// else
@@ -259,12 +328,15 @@ void Bot::communication_loop()
 		}
 		if (FD_ISSET(_sock, &read_fds))
 			handle_global_data();
+
+
+
+		// Search for new channels and users every 5 seconds
 		time_t current_time = std::time(NULL);
 		if (current_time - _last_check >= check_interval)
 		{
 			send(_sock, "LIST\r\n", 6, 0);
 			user_command();
-			// SEND LIST AND WHO COMMANDS
 			_last_check = current_time;
 		}
 		//message_reception();

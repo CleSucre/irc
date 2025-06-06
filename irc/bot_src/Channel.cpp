@@ -26,7 +26,7 @@ size_t Channel::getId() const {
 	return _id;
 }
 
-std::vector<Client> &Channel::getClients() {
+std::vector<Client> &Channel::getClientsList() {
 	return _clients;
 }
 
@@ -45,4 +45,13 @@ size_t find_channel_index(const std::vector<Channel> &channels, const std::strin
 			return (i);
 	}
 	throw(std::runtime_error("Channel not found"));
+}
+
+Client &Channel::getClientbyNick(const std::string &nick) {
+	for(std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+		if (it->getNick() == nick) {
+			return *it;
+		}
+	}
+	throw std::runtime_error("Client not found");
 }

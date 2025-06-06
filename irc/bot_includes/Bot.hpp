@@ -54,7 +54,7 @@ class Bot
 
 		void list_users();
 		void check_flood();
-		void message_reception();
+		void message_reception(std::string &packet);
 		void join_channels(std::vector<std::string> &channels);
 
 		void handle_global_data();
