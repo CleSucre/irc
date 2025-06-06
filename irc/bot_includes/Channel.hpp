@@ -10,6 +10,7 @@ class Channel
 		std::string _name;
 		size_t _id;
 		std::vector<Client> _clients;
+		bool 	_op;
 	public:
 		Channel();
 		Channel(const std::string &name, size_t id);
@@ -21,4 +22,6 @@ class Channel
 		std::vector<Client> &getClientsList();
 		Client &getClientbyNick(std::string const &nick);
 		size_t find_channel_index(const std::vector<Channel> &channels, const std::string &channel_name);
+		void setOp(bool op);
+		bool getOp() const;
 };

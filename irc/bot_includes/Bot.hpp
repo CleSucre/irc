@@ -59,6 +59,8 @@ class Bot
 
 		void handle_global_data();
 		void user_command();
+		void operator_modification(std::string &packet);
+
 };
 
 size_t find_channel_index(const std::vector<Channel> &channels, const std::string &channel_name);

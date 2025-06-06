@@ -1,16 +1,17 @@
 #include "Channel.hpp"
 
-Channel::Channel() : _name(""), _id(0) {}
+Channel::Channel() : _name(""), _id(0), _op(false) {}
 
-Channel::Channel(const std::string &name, size_t id) : _name(name), _id(id) {}
+Channel::Channel(const std::string &name, size_t id) : _name(name), _id(id), _op(false) {}
 
-Channel::Channel(const Channel &old) : _name(old._name), _id(old._id), _clients(old._clients) {}
+Channel::Channel(const Channel &old) : _name(old._name), _id(old._id), _clients(old._clients), _op(old._op) {}
 
 Channel &Channel::operator=(const Channel &old) {
 	if (this != &old) {
 		_name = old._name;
 		_id = old._id;
 		_clients = old._clients;
+		_op = old._op;
 	}
 	return *this;
 }
@@ -54,4 +55,12 @@ Client &Channel::getClientbyNick(const std::string &nick) {
 		}
 	}
 	throw std::runtime_error("Client not found");
+}
+
+void Channel::setOp(bool op) {
+	_op = op;
+}
+
+bool Channel::getOp() const {
+	return _op;
 }

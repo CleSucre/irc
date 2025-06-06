@@ -116,14 +116,27 @@ void Bot::list_channels_handler(std::string &packet)
  * The ID is set to the current size of the destination vector plus one.
  * It will only add unique usernames to the destination vector.
  */
-int copy_users(std::string src, std::vector<Client> &dest)
+int copy_users(std::string src, std::vector<Channel> &channel, size_t _current_channel)
 {
+	std::vector<Client> &dest = channel[_current_channel - 1].getClientsList();
 	if (src.empty())
 		return (1);
 	for(std::vector<Client>::iterator it = dest.begin(); it != dest.end(); ++it)
 	{
 		if (it->getUsername() == src)
+		{
+			if (it->getWarningCount() >= 5)
+			{
+				std::string kickCmd = "KICK " + channel[_current_channel - 1].getName() + " " + it->getNick() + " :Too many warnings\r\n";
+				if (send(channel[_current_channel - 1].getClientsList()[0].getId(), kickCmd.c_str(), kickCmd.size(), 0) < 0)
+					return (1);
+				std::string privmsg = "PRIVMSG " + it->getNick() + " :You have been banned for too many flooding\r\n";
+				if (send(channel[_current_channel - 1].getClientsList()[0].getId(), privmsg.c_str(), privmsg.size(), 0) < 0)
+					return (1);
+				std::cout << "Kicking user: " << it->getNick() << " from channel: " << channel[_current_channel - 1].getName() << std::endl; // TODO: Debug message
+			}
 			return (1);
+		}
 	}
 	dest.push_back(Client(src, "unknown", dest.size() + 1));
 	std::cout << "New user added: " << src << " with ID: " << dest.size() + 1 << "\n"; // TODO: Debug 
@@ -154,7 +167,7 @@ void Bot::list_users_handler(std::string &packet)
 	try
 	{
 		_current_channel = find_channel_index(_channel, tmp);
-		copy_users(packet, _channel[_current_channel - 1].getClientsList());
+		copy_users(packet, _channel, _current_channel);
 	}
 	catch (const std::runtime_error &e)
 	{
@@ -162,17 +175,6 @@ void Bot::list_users_handler(std::string &packet)
 		return;
 	}
 }
-
-/**
- * @brief Split a packet message into tokens
- * @param packet The packet message to split
- * @return A vector of strings containing the split tokens
- * This function extracts the username from the packet and returns a vector of strings.
- * It currently only extracts the username and does not handle other parts of the packet.
- * @note
- * A packet message is expected to be in the format:
- * :username!user@host PRIVMSG #channel :message
- */
 
 /**
  * @brief Structure to hold message information
@@ -190,7 +192,7 @@ struct t_message {
 };
 
 /**
- * @brief Split a packet message into its components
+ * @brief Split a packet message into tokens
  * @param packet The packet message to split
  * @return A t_message structure containing the username, channel, and message content
  * This function extracts the username, channel, and message content from the packet message.
@@ -232,6 +234,8 @@ void Bot::message_reception(std::string &packet)
 	std::cout << "Message received from " << msg.username << " in channel " << msg.channel << ": " << msg.message << std::endl; // TODO: Debug message
 	try{
 		_current_channel = find_channel_index(_channel, msg.channel);
+		if (_channel[_current_channel - 1].getOp() == false)
+			throw std::runtime_error("Bot is not an operator in the channel" + msg.channel + ", cannot process message");
 		Client &tmp = _channel[_current_channel - 1].getClientbyNick(msg.username);
 		if (tmp.getLastMessage() - std::time(NULL) > check_interval)
 		{
@@ -253,6 +257,36 @@ void Bot::message_reception(std::string &packet)
 	catch (const std::runtime_error &e)
 	{
 		std::cerr << "Error finding channel index: " << e.what() << std::endl; //TODO: Debug message
+		return;
+	}
+}
+
+void Bot::operator_modification(std::string &packet)
+{
+	if (packet.empty())
+		return ;
+	std::string grade = packet;
+	std::string target = packet;
+	std::string channel = packet;
+
+	parse_packet(channel, 3);
+	parse_packet(grade, 4);
+	parse_packet(target, 5);
+	if (channel.empty() || grade.empty() || target.empty() || target != _nick)
+	{
+		std::cerr << "Error parsing operator modification packet." << std::endl; //TODO: Debug message
+		return;
+	}
+	try{
+		_current_channel = find_channel_index(_channel, channel);
+		if (grade == "+o")
+			_channel[_current_channel].setOp(true);
+		else if (grade == "-o")
+			_channel[_current_channel].setOp(false);
+	}
+	catch(...)
+	{
+		std::cerr << "Error finding channel index or parsing operator modification packet." << std::endl; //TODO: Debug message
 		return;
 	}
 }
@@ -288,6 +322,8 @@ void Bot::handle_global_data()
 		list_users_handler(packet);
 	else if (packet.find("PRIVMSG") != std::string::npos)
 		message_reception(packet);
+	else if (packet.find("MODE") != std::string::npos)
+		operator_modification(packet);
 	
 	// else if (packet.find("PRIVMSG") != std::string::npos)
 	// 	message_reception();
@@ -300,6 +336,8 @@ void Bot::user_command()
 {
 	for (std::vector<Channel>::iterator it = _channel.begin(); it != _channel.end(); ++it)
 	{
+		if (it->getOp() == false)
+			continue;
 		std::string whoCmd = "WHO " + it->getName() + "\r\n";
 		send(_sock, whoCmd.c_str(), whoCmd.size(), 0);
 	}
@@ -350,10 +388,10 @@ void Bot::server_authentification()
     std::string userCmd = "USER " + std::string(_nick) + " 0 * :Server bot\r\n";
     std::cout << "NICK command sent\n" << std::endl;
     send(_sock, nickCmd.c_str(), nickCmd.size(), 0);
-	usleep(500);
+	usleep(100);
     std::cout << "USER command sent\n" << std::endl;
     send(_sock, userCmd.c_str(), userCmd.size(), 0);
-    usleep(500);
+    usleep(100);
     std::cout << "Authentication complete, entering communication loop...\n" << std::endl;
     communication_loop();
 
