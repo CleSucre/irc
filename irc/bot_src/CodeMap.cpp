@@ -1,7 +1,5 @@
 #include "CodeMap.hpp"
 
-	// TODO: put define here
-
 /**
  * @brief CodeMap constructor
  * Initializes the mapping of packet codes to their indices.
@@ -9,9 +7,9 @@
  * 352 corresponds to the list of users in a channel.
  */
 CodeMap::CodeMap(){
-	_entry[0].code_name = "322";
+	_entry[0].code_name = LIST_START;
 	_entry[0].packet_index = 4; 
-	_entry[1].code_name = "352";
+	_entry[1].code_name = WHO_START;
 	_entry[1].packet_index = 5;
 }
 

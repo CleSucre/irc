@@ -1,8 +1,4 @@
 #include "Bot.hpp"
-/** 
-	TODO: Create defines for the IRC codes
-		 
-*/
 
 Bot::Bot() : _sock(-1), _nick("bot"), _current_channel(0), _channel_known(0), _last_check(std::time(NULL)) {}
 
@@ -20,9 +16,6 @@ Bot::~Bot()
  * @return 0 on success, -1 on error
  * @note This function is currently not implemented.
  * It should parse the packet and return the appropriate value based on the end_code.
- * LIST end code is 323
- * User end code is 315
- * PRIVMSG end code is 401
  * @example:
  * WHO command response:
  * :irc.example.com 352 julien #canal juliette example.com irc.example.com juliette H@ :0 Juliette Dupont
@@ -33,7 +26,6 @@ Bot::~Bot()
  * :irc.example.com 322 julien #canal 10 :This is a test channel
  * :serveur 322 <demandeur> <canal> <nb_utilisateurs> :<topic>
  * Important element : 4th element
- * 
  */
 int	parse_packet(std::string &packet, int split_position)
 {
@@ -85,8 +77,6 @@ int copy_channel(std::string &src, std::vector<Channel> &dest, int _channel_know
  * It parses the packet to extract the channel name and checks if it is already known.
  * If the channel is not known, it update the list of known channels 
  * then sends a JOIN command to the IRC server to join the channel.
- * 
- * 	Server first send code 321, then 322 with server, then 323 to end the list
  */
 void Bot::list_channels_handler(std::string &packet)
 {
@@ -151,8 +141,6 @@ int copy_users(std::string src, std::vector<Channel> &channel, size_t _current_c
  * It parses the packet to extract the channel name and updates the list of known users in that channel.
  * It uses the CodeMap to determine the index of the packet and processes the response accordingly.
  * It updates the list of known users in each channel
- * 
- * Server first send code 352, then 315 to end the list
  */
 void Bot::list_users_handler(std::string &packet)
 {
@@ -176,20 +164,6 @@ void Bot::list_users_handler(std::string &packet)
 	}
 }
 
-/**
- * @brief Structure to hold message information
- * This structure holds the username, channel, and message content.
- * It is used to store the parsed information from a packet message.
- * @note
- * The structure is used in the message_reception function to process incoming messages.
- * It is designed to be simple and efficient for storing message data.
- * std::string message is used to store the message content, it is here if we want to add more information later.
- */
-struct t_message {
-	std::string username;
-	std::string channel;
-	std::string message;
-};
 
 /**
  * @brief Split a packet message into tokens
@@ -251,6 +225,13 @@ void Bot::message_reception(std::string &packet)
 				send(_sock, privmsg.c_str(), privmsg.size(), 0);
 				return;
 			}
+			else
+			{
+				std::cout << "Warning sent to user: " << tmp.getNick() << ", warning count: " << warning_count + 1 << std::endl; // TODO: Debug message
+				std::string privmsg = "PRIVMSG " + msg.username + " :You have been warned for flooding\r\n";
+				send(_sock, privmsg.c_str(), privmsg.size(), 0);
+				usleep(50);
+			}
 		}
 		tmp.resetLastMessage();
 	}
@@ -260,7 +241,23 @@ void Bot::message_reception(std::string &packet)
 		return;
 	}
 }
-
+/**
+ * @brief Handle operator modification packets
+ * @param packet The packet received from the IRC server
+ * @note
+ * This function processes operator modification packets, which are used to add or remove operators from a channel.
+ * It checks if the packet is well-formed and contains the necessary information.
+ * It updates the channel's operator status based on the packet content.
+ * @note
+ * Important elements:
+ * - 3rd element: channel name
+ * - 4th element: operator grade (+o or -o)
+ * - 5th element: target username
+ * @example:
+ * Example of a packet received:
+ * :irc.example.com MODE #channel +o username
+ * :server MODE <channel> <grade> <target>
+ */
 void Bot::operator_modification(std::string &packet)
 {
 	if (packet.empty())
@@ -315,23 +312,24 @@ void Bot::handle_global_data()
 	}
 	buffer[len] = '\0';
 	std::string packet(buffer);
-	//TODO: put define instead of 322 or 323
-	if (packet.find("322") != std::string::npos)
+	if (packet.find(LIST_START) != std::string::npos)
 		list_channels_handler(packet);
-	else if (packet.find("352") != std::string::npos || packet.find("315") != std::string::npos)
+	else if (packet.find(WHO_START) != std::string::npos || packet.find(WHO_END) != std::string::npos)
 		list_users_handler(packet);
 	else if (packet.find("PRIVMSG") != std::string::npos)
 		message_reception(packet);
 	else if (packet.find("MODE") != std::string::npos)
 		operator_modification(packet);
-	
-	// else if (packet.find("PRIVMSG") != std::string::npos)
-	// 	message_reception();
-	// else
-	// 	std::cout << "Unhandled packet: " << packet << std::endl; // TODO: Debug message
 }
 
-
+/**
+ * @brief Send WHO command to all channels where the bot is an operator
+ * This function sends a WHO command to each channel where the bot is an operator.
+ * It iterates through the list of channels and sends the WHO command for each channel.
+ * @note
+ * The WHO command is used to get a list of users in a channel.
+ * It is sent to the IRC server to retrieve information about users in each channel.
+ */
 void Bot::user_command()
 {
 	for (std::vector<Channel>::iterator it = _channel.begin(); it != _channel.end(); ++it)
@@ -347,6 +345,12 @@ void Bot::user_command()
  * @brief Loop to communicate with the IRC server
  * This function handles sending and receiving messages, checking for new channel,
  *  clients, and processing incoming messages.
+ * It uses the select function to wait for incoming data on the socket.
+ * @note
+ * The communication loop is the main part of the bot that keeps it running and interacting with the IRC server.
+ * It is responsible for maintaining the connection, processing incoming messages, and sending commands.
+ * It uses a timeout to check for new channels and users every 5 seconds.
+ * It can be extended to handle more complex interactions with the IRC server, such as responding to specific commands or messages.
  */
 void Bot::communication_loop()
 {
@@ -359,17 +363,6 @@ void Bot::communication_loop()
 	timeout.tv_usec = 0;
 	int max_fd = _sock;
     while (true) {
-		read_fds = master_fds;
-		if (select(max_fd + 1, &read_fds, NULL, NULL, &timeout) < 0) {
-			std::cerr << "Select error\n";
-			return;
-		}
-		if (FD_ISSET(_sock, &read_fds))
-			handle_global_data();
-
-
-
-		// Search for new channels and users every 5 seconds
 		time_t current_time = std::time(NULL);
 		if (current_time - _last_check >= check_interval)
 		{
@@ -377,7 +370,13 @@ void Bot::communication_loop()
 			user_command();
 			_last_check = current_time;
 		}
-		//message_reception();
+		read_fds = master_fds;
+		if (select(max_fd + 1, &read_fds, NULL, NULL, &timeout) < 0) {
+			std::cerr << "Select error\n";
+			return;
+		}
+		if (FD_ISSET(_sock, &read_fds))
+			handle_global_data();
 	}
     return ;
 }
@@ -394,8 +393,6 @@ void Bot::server_authentification()
     usleep(100);
     std::cout << "Authentication complete, entering communication loop...\n" << std::endl;
     communication_loop();
-
-
 }
 
 /**
@@ -422,7 +419,6 @@ int Bot::socket_creation(int argc, char* argv[])
         std::cerr << "Invalid adress\n";
         return 1;
     }
-
     if (connect(_sock, (sockaddr*)&addr, sizeof(addr)) < 0) {
         std::cerr << "Impossible to connect to " << server << ":" << port << "\n";
         return 1;

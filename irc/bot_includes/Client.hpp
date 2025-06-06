@@ -11,10 +11,9 @@ class Client
 	private:
 		std::string _nick;
 		std::string _username;
-		size_t _id;
+		size_t _id; //TODO: remove?
 		size_t _last_message;
 		int _warning_count;
-		int	_grade;
 	public:
 		Client();
 		Client(const std::string &, const std::string &, size_t id);
@@ -26,12 +25,22 @@ class Client
 		const std::string &getUsername() const;
 		size_t getId() const;
 		size_t getLastMessage() const;
-		int getGrade() const;
 		void setWarningCount(int count);
 		int getWarningCount() const;
 		void resetLastMessage();
+};
 
-		
-
-
+/**
+ * @brief Structure to hold message information
+ * This structure holds the username, channel, and message content.
+ * It is used to store the parsed information from a packet message.
+ * @note
+ * The structure is used in the message_reception function to process incoming messages.
+ * It is designed to be simple and efficient for storing message data.
+ * std::string message is used to store the message content, it is here if we want to add more information later.
+ */
+struct t_message {
+	std::string username;
+	std::string channel;
+	std::string message;
 };

@@ -21,7 +21,8 @@ class Channel
 		size_t getId() const;
 		std::vector<Client> &getClientsList();
 		Client &getClientbyNick(std::string const &nick);
-		size_t find_channel_index(const std::vector<Channel> &channels, const std::string &channel_name);
 		void setOp(bool op);
 		bool getOp() const;
 };
+
+size_t find_channel_index(const std::vector<Channel> &channels, const std::string &channel_name);
