@@ -1,5 +1,8 @@
 #include "Bot.hpp"
 
+int Bot::_signal = 0;
+
+
 Bot::Bot() : _sock(-1), _nick("bot"), _current_channel(0), _channel_known(0), _last_check(std::time(NULL)) {}
 
 Bot::~Bot()
@@ -362,7 +365,7 @@ void Bot::communication_loop()
 	timeout.tv_sec = 1;
 	timeout.tv_usec = 0;
 	int max_fd = _sock;
-    while (true) {
+    while (_signal == 0) {
 		time_t current_time = std::time(NULL);
 		if (current_time - _last_check >= check_interval)
 		{
@@ -395,6 +398,14 @@ void Bot::server_authentification()
     communication_loop();
 }
 
+
+void Bot::handleSignal(int sig)
+{
+    if (sig == SIGINT || sig == SIGQUIT)
+        Bot::_signal = 1;
+}
+
+
 /**
  * @brief Create a socket and connect bot to the IRC server
  * @param argc Number of command line arguments
@@ -406,6 +417,9 @@ int Bot::socket_creation(int argc, char* argv[])
     const char* server = (argc > 1 ? argv[1] : "127.0.0.1");
     int port          = (argc > 2 ? std::atoi(argv[2]) : 6667);
     _nick   = (argc > 3 ? argv[3] : "bot");
+
+	signal(SIGINT, Bot::handleSignal);
+	signal(SIGQUIT, Bot::handleSignal); 
 
     _sock = socket(AF_INET, SOCK_STREAM, 0);
     if (_sock < 0) {

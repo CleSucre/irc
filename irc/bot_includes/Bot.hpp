@@ -21,6 +21,8 @@
 #include "Channel.hpp"
 #include "CodeMap.hpp"
 
+#include <signal.h>
+
 #define LIST_START "322"
 #define LIST_END "323"
 #define WHO_START "352"
@@ -40,6 +42,7 @@ class Bot
 		std::vector<Channel> _channel;
 		time_t _last_check;
 		static const int	check_interval = 5;
+		static int	_signal;
 
 	public:
 		Bot();
@@ -53,6 +56,8 @@ class Bot
 		void handle_global_data();
 		void user_command();
 		void operator_modification(std::string &packet);
+
+		static void handleSignal(int sig);
 
 };
 
