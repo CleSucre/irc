@@ -1,5 +1,5 @@
 #include "Client.hpp"
-
+#include "Utils.hpp"
 
 /**
  * @brief Set the NickName of the client
@@ -13,13 +13,13 @@ bool Client::setNick(const std::string &name)
 		return false;
 	else if (name.length() > 10 || name.find(" ") != std::string::npos)
 	{
-		std::cerr << "Client " << _fd << " has entered a wrong NickName : " << name << std::endl;
+		std::cerr << "Client " << _ip << " has entered a wrong NickName : " << name << std::endl;
 		return false;
 	}
     //TODO: Check if new NickName isn't already taken in the server and in channels
 	if (_id.Nickname != name)
 		_id.Nickname = name;
-	std::cout << "Client " << _id.Username << " has entered a new NickName : " << _id.Nickname << std::endl;
+	std::cout << "Client " << _ip << " has entered a new NickName : " << _id.Nickname << std::endl;
 	return true;
 }
 
@@ -33,7 +33,7 @@ bool Client::setNick(const std::string &name)
  */
 static bool isValidUsername(const std::string& username) {
 	size_t len = username.length();
-    if (username.empty() || len >= 9)
+    if (username.empty() || len < 1 || len > 75)
         return false;
     for (std::string::size_type i = 0; i < len; ++i) {
         char c = username[i];
@@ -95,35 +95,26 @@ static bool parsecolon(const std::string &args, std::string *res)
  * @param name : UserName to set
  * @return true if ok, false if error
  */
-bool Client::setUser(const std::string &args)
+bool Client::setUser(const std::string &username)
 {
 	/**
 		hostname et servername : format d’hôte (lettres, chiffres, points). <= 255 caractères
 		realname : peut contenir espaces, mais pas \r/\n.
 	 */
 	//Check if the client is already registered
-	if (_id.certify == true || _id.Username.length() > 0)
-	{
+	if (_id.certify == true || !_id.Username.empty()) {
 		sendMessage("462 ERR_ALREADYREGISTERED :Unauthorized command (already registered)\r\n");
 		std::cerr << "Client " << _id.Username << " is already registered." << std::endl;
 		return (false);
 	}
-	std::string username;
-	if (parsecolon(args, &username) == false)
-	{
-		std::cerr << "Client " << _fd << " " << username << std::endl;
-		sendMessage(username + "\r\n");
-		return (false);
-	}
-	if (username.length() < 1 || username.length() > 75)
-	{
+	if (!isValidUsername(username)) {
 		sendMessage("ERR_INVALIDPARAMS :Invalid username\r\n");
 		std::cerr << "Client " << _id.Username << " has entered a wrong UserName." << std::endl;
 		return (false);
 	}
 	//TODO: Check if new UserName isn't already taken in the server and in channels --- Same function as in Nickname
 	_id.Username = username;
-	std::cout << "Client " << _fd << " is now known as : " << _id.Username << std::endl;
+	std::cout << "Client " << _ip << " is now known as : " << _id.Username << std::endl;
     return (true);
 }
 
@@ -134,36 +125,13 @@ bool Client::setUser(const std::string &args)
  */
 bool Client::checkIdentification()
 {
-	if (_id.certify == false && _buff.find("NICK") == std::string::npos\
-		&& _buff.find("USER") == std::string::npos)
+	if (_id.certify)
+		return (true);
+	if (_id.Username.length() > 0 && _id.Nickname.length() > 0 && _id.validPassword)
 	{
-		std::cerr << "Client " << _fd << " is not registered." << std::endl;
-		sendMessage("ERR_NOTREGISTERED :You have not registered\r\n");
-		return false;
-	}
-	if (_buff.find("NICK") != std::string::npos)
-	{
-		if (setNick(_buff.substr(_buff.find("NICK") + 5)) == false)
-		{
-			_buff.erase(0, _buff.size());
-			return false;
-		}
-		_buff.erase(0, _buff.find("\r\n") + 2);
-	}
-	else if (_buff.find("USER") != std::string::npos)
-	{
-		if (setUser(_buff.substr(_buff.find("USER") + 5)) == false)
-		{
-			_buff.erase(0, _buff.size());
-			return true;
-		}
-		_buff.erase(0, _buff.find("\r\n") + 2);
-	}
-	if (_id.Username.length() > 0  && _id.Nickname.length() > 0)
-	{
-		if (_id.certify == false)
-			sendMessage("001 RPL_WELCOME :Welcome to the Internet Relay Network " + _id.Nickname);
+		std::cout << "Client " << _ip << " is now identified as " << _id.Nickname << std::endl;
+		sendMessage("001 RPL_WELCOME :Welcome to the Internet Relay Network " + _id.Nickname + "\r\n");
 		_id.certify = true;
 	}
-	return true;
+	return (_id.certify);
 }

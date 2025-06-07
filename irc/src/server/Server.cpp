@@ -324,6 +324,17 @@ bool Server::processFds(fd_set read_fds, int max_fd) {
 }
 
 /**
+ * @brief Checks if the provided password matches the server's password
+ *
+ * @param password The password to check
+ *
+ * @return bool true if the password matches, false otherwise
+ */
+bool Server::checkPassword(const std::string& password) const {
+    return _password.empty() || _password == password;
+}
+
+/**
  * @brief Starts the IRC server and begins listening for clients
  */
 void Server::start() {
