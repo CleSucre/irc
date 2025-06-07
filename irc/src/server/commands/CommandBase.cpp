@@ -25,12 +25,12 @@ std::string CommandBase::getParameter(size_t index) const {
 }
 
 std::string CommandBase::pre_execute() {
-    if (_needAuth && !_client.checkIdentification()) {
-        return ERR_NOTREGISTERED(_client.getPrefix());
-    }
-    if (_cmd.empty()) {
-        return ERR_UNKNOWNCOMMAND(_client.getPrefix(), "");
-    }
+    // if (_needAuth && !_client.checkIdentification()) {
+    //     return ERR_NOTREGISTERED(_client.getPrefix());
+    // }
+    // if (_cmd.empty()) {
+    //     return ERR_UNKNOWNCOMMAND(_client.getPrefix(), "");
+    // }
     return execute();
 }
 

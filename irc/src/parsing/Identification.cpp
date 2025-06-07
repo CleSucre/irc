@@ -44,6 +44,49 @@ static bool isValidUsername(const std::string& username) {
 }
 
 /**
+ * @brief Parse the arguments of the USER command
+ * 		Fill the username with everything between 3thrd
+ * 		count and last one without first occurence en ':'
+ * @param args : arguments to parse
+ * @param username : pointer to the username to fill
+ * @return true if ok, false if error
+ */
+#
+static bool parsecolon(const std::string &args, std::string *res)
+{
+	std::string::size_type limit;
+	limit = args.find(":");
+	if (limit == std::string::npos)
+	{
+		*res = "ERR_NEEDMOREPARAMS :Not enough parameters";
+		return (false);
+	}
+	std::string check = args.substr(0, limit);
+	std::istringstream iss(check);
+	std::string param;
+	std::vector<std::string> tokens;
+	int count;
+	for (count = 0; iss >> param; count++)
+	{
+		if (count == 0 && isValidUsername(param) == false)
+		{
+			*res = "ERR_INVALIDPARAMS :Invalid username";
+			return (false);
+		}
+		tokens.push_back(param);
+	}
+	if (count < 3)
+	{
+		*res = "ERR_NEEDMOREPARAMS :Not enough parameters";
+		return (false);
+	}
+	for(size_t i = 3; i < tokens.size(); i++)
+		(*res).append(tokens[i] + " ");
+	(*res).append(args.substr(limit + 1));
+	return (true);
+}
+
+/**
  * @brief Set the UserName of the client
  * @throw ERR_NEEDMOREPARAMS : Not enough parameters
  * @throw ERR_ALREADYREGISTERED : Already registered
@@ -55,7 +98,7 @@ static bool isValidUsername(const std::string& username) {
 bool Client::setUser(const std::string &username)
 {
 	/**
-		hostname et servername : format d’hôte (lettres, chiffres, points). <= 255 caractères 
+		hostname et servername : format d’hôte (lettres, chiffres, points). <= 255 caractères
 		realname : peut contenir espaces, mais pas \r/\n.
 	 */
 	//Check if the client is already registered
@@ -77,7 +120,7 @@ bool Client::setUser(const std::string &username)
 
 /**
  * @brief Check if the client is identified and set Nickname and Username if needed
- * 
+ *
  * @return false if error, true if ok
  */
 bool Client::checkIdentification()
