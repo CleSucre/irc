@@ -45,7 +45,7 @@ static bool isValidUsername(const std::string& username) {
 
 /**
  * @brief Parse the arguments of the USER command
- * 		Fill the username with everything between 3thrd 
+ * 		Fill the username with everything between 3thrd
  * 		count and last one without first occurence en ':'
  * @param args : arguments to parse
  * @param username : pointer to the username to fill
@@ -98,7 +98,7 @@ static bool parsecolon(const std::string &args, std::string *res)
 bool Client::setUser(const std::string &args)
 {
 	/**
-		hostname et servername : format d’hôte (lettres, chiffres, points). <= 255 caractères 
+		hostname et servername : format d’hôte (lettres, chiffres, points). <= 255 caractères
 		realname : peut contenir espaces, mais pas \r/\n.
 	 */
 	//Check if the client is already registered
@@ -129,7 +129,7 @@ bool Client::setUser(const std::string &args)
 
 /**
  * @brief Check if the client is identified and set Nickname and Username if needed
- * 
+ *
  * @return false if error, true if ok
  */
 bool Client::checkIdentification()
@@ -155,7 +155,7 @@ bool Client::checkIdentification()
 		if (setUser(_buff.substr(_buff.find("USER") + 5)) == false)
 		{
 			_buff.erase(0, _buff.size());
-			return false;
+			return true;
 		}
 		_buff.erase(0, _buff.find("\r\n") + 2);
 	}

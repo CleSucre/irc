@@ -1,7 +1,7 @@
 #include "WhoCommand.hpp"
 
 WhoCommand::WhoCommand(Client& client, const std::vector<std::string>& cmd)
-	: CommandBase(client, cmd) {}
+	: CommandBase(client, cmd, true) {}
 
 WhoCommand::~WhoCommand() {}
 
