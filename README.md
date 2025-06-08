@@ -14,7 +14,7 @@ openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -node
 ## Connect to IRC without SSL support
 
 ```sh
-nc -C ADDRESS PORT
+telnet ADDRESS PORT
 ```
 
 ## Connect to IRC with SSL support

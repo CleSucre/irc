@@ -21,6 +21,7 @@ struct identification
 {
     std::string Nickname;
     std::string Username;
+    bool validPassword;
     bool certify;
 };
 
@@ -44,6 +45,7 @@ class Client {
         bool setUser(const std::string &);
         std::string getUser() const;
         std::string getPrefix() const;
+        void setValidPassword();
 
         Server* getServer() const;
         bool isSSL() const;

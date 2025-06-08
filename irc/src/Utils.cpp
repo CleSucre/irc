@@ -22,3 +22,18 @@ std::string joinFirstN(const std::vector<std::string>& vec, size_t n, const std:
     }
     return oss.str();
 }
+
+std::string substr(const std::string& str, size_t start, size_t length) {
+    std::string result = "";
+
+    if (start >= str.length())
+        return result;
+
+    if (start + length > str.length())
+        length = str.length() - start;
+
+    for (size_t i = 0; i < length; ++i)
+        result += str[start + i];
+
+    return result;
+}

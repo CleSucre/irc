@@ -1,33 +1,35 @@
 #include "Client.hpp"
+#include "Utils.hpp"
 
 /* ============================================= \\
-//					Constructors			 	 \\ 
+//					Constructors			 	 \\
 // =============================================*/
 
 Client::Client(Server *server, int fd, char *ip, SSL* ssl) : _server(server), _fd(fd), _ip(ip), _ssl(ssl) {
+   _id.validPassword = false;
    _id.certify = false;
 }
 
 Client::~Client() {
-    if (_ssl) {
-        SSL_shutdown(_ssl);
-        SSL_free(_ssl);
-    }
-    close(_fd);
+	if (_ssl) {
+		SSL_shutdown(_ssl);
+		SSL_free(_ssl);
+	}
+	close(_fd);
 }
 
 
-/*=============================================\\ 
-//					Getters						\\ 
+/*=============================================\\
+//					Getters						\\
 //=============================================	*/
 
 /**
  * @brief Get the file descriptor of the client
- * 
+ *
  * @return int : file descriptor
  */
 int Client::getFd() const {
-    return _fd;
+	return _fd;
 }
 
 const char *Client::getIp() const {
@@ -35,16 +37,16 @@ const char *Client::getIp() const {
 }
 
 Server* Client::getServer() const {
-    return _server;
+	return _server;
 }
 
 bool Client::isSSL() const {
-    return _ssl != NULL;
+	return _ssl != NULL;
 }
 
 /**
  * @brief Get the NickName of the client
- * 
+ *
  * @return std::string : NickName
  */
 std::string Client::getNick() const
@@ -52,10 +54,9 @@ std::string Client::getNick() const
 	return _id.Nickname;
 }
 
-
 /**
  * @brief Get the UserName of the client
- * 
+ *
  * @return std::string : UserName
  */
 std::string Client::getUser() const
@@ -65,93 +66,69 @@ std::string Client::getUser() const
 
 /**
  * @brief Get the prefix of the client
- * 
+ *
  * @return std::string : prefix
  */
 std::string Client::getPrefix() const {
-    std::string prefix;
-    if (_id.certify == true) {
-        prefix = ":" + _id.Nickname + "!" + _id.Username + "@" + std::string(_ip);
-    } else {
-        prefix = ":" + std::string(_ip);
-    }
-    return prefix;
+	std::string prefix;
+	if (_id.certify == true) {
+		prefix = ":" + _id.Nickname + "!" + _id.Username + "@" + std::string(_ip);
+	} else {
+		prefix = ":" + std::string(_ip);
+	}
+	return prefix;
 }
 
-
-
 /**
- * @brief Check if the command is valid
- * @param arg : input command to check
- * 
- * @return true if command is valid
- * @return false if error
+ * @brief Set valid password
+ *
+ * This function sets the validPassword attribute of the client to true.
  */
-bool Client::go_command(std::string arg)
-{
-	std::string command[4] = {"KICK", "INVITE", "TOPIC", "MODE"};
-	for (int i = 0; i < 4; i++)
-	{
-		if (arg.find(command[i]) != std::string::npos)
-		{
-			std::cout << "Command found : " << command[i] << std::endl;
-			return true;
-		}
-	}
-	sendMessage("ERR_UNKNOWNCOMMAND :Unknown command\r\n");
-	_buff.erase(0, _buff.size());
-	std::cout << "Client " << _fd << " Error in input : " << arg << std::endl;
-    return false;
+void Client::setValidPassword() {
+	_id.validPassword = true;
 }
 
 /**
  * @brief Listens for incoming messages from the client
  *        Read them on a temporary char[BUFFER_SIZE]
- * 		  If bytes > 0, stock them in client->buffer and search for a "\n" 
- * 
+ * 		  If bytes > 0, stock them in client->buffer and search for a "\n"
+ *
  * @return true if ok, false if error
  */
 bool Client::listen() {
 	// Listen for incoming messages from the client inside a buffer
-    char buffer[BUFFER_SIZE];
-    int bytes_read = 0;
+	char buffer[BUFFER_SIZE];
+	int bytes_read = 0;
 
-    if (_ssl) {
-        bytes_read = SSL_read(_ssl, buffer, sizeof(buffer) - 1);
-    } else {
-        bytes_read = recv(_fd, buffer, sizeof(buffer) - 1, 0);
-    }
+	if (_ssl) {
+		bytes_read = SSL_read(_ssl, buffer, sizeof(buffer) - 1);
+	} else {
+		bytes_read = recv(_fd, buffer, sizeof(buffer) - 1, 0);
+	}
 
-    if (bytes_read <= 0) {
-        std::cerr << "Client " << _ip << " disconnected or error occurred." << std::endl;
-        return false;
-    }
+	if (bytes_read <= 0) {
+		std::cerr << "Client " << _ip << " disconnected or error occurred." << std::endl;
+		return false;
+	}
 	buffer[bytes_read] = '\0';
 	// Concatenate the buffer to the client's buffer
 	_buff.append(buffer);
-	// Check identification
-	if (checkIdentification() == false)
-    {
-        _buff.erase(0, _buff.size());
-		return true;
-    }
+
 	// Check if the buffer contains a complete command
-    size_t pos;
-    while ((pos = _buff.find("\r\n")) != std::string::npos) {
-        std::string arg = _buff.substr(0, pos);
-        _buff.erase(0, pos + 2);
-		// TODO: Parse command and send it to person C + change this function name
-        go_command(arg);
+	size_t pos;
+	while ((pos = _buff.find("\r\n")) != std::string::npos) {
+		std::string arg = _buff.substr(0, pos);
+		_buff.erase(0, pos + 2);
 		// Valid packet received
-        packetRecieption(*this, arg);
-        
-    }
-    return true;
+		packetRecieption(*this, arg);
+
+	}
+	return true;
 }
 
 /**
  * @brief Send a message to the client
- * 
+ *
  * @param message : message to send
  * @return true if ok, false if error
  */

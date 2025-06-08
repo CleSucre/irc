@@ -42,6 +42,8 @@ class Server {
         bool processNewClient(int client_fd);
         bool processFds(fd_set read_fds, int max_fd);
 
+        void removeClientInChannel(Client *client);
+
     public:
         Server(std::string name, int port, const std::string& password, const std::string& certFile, const std::string& keyFile);
         ~Server();
@@ -51,7 +53,10 @@ class Server {
 
         const std::string& getName() const;
 
+        bool checkPassword(const std::string& password) const;
+
         bool addClient(Client* client);
+        std::vector<Client*> getAllClients();
         Client *getClientByName(const std::string& name);
         Client *getClientByNickname(const std::string& name);
 
