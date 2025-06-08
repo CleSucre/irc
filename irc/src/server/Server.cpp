@@ -174,6 +174,22 @@ Client* Server::getClientByName(const std::string& name) {
 }
 
 /**
+ * @brief Retrieves a client by its nickname
+ * 
+ * @param name The nickname of the client to retrieve
+ * 
+ * @return Client* Pointer to the client, or NULL if not found
+ */
+Client* Server::getClientByNickname(const std::string& name) {
+    for (size_t i = 0; i < _clients.size(); ++i) {
+        if (_clients[i]->getNick() == name) {
+            return _clients[i];
+        }
+    }
+    return NULL;
+}
+
+/**
  * @brief Adds a new channel to the server
  *
  * @param channel The channel to add

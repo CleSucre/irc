@@ -18,3 +18,7 @@ irc/ssl/
 # Tests
 
 irc/tests/
+
+*.o
+ircserv
+bot

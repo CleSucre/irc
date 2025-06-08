@@ -11,10 +11,11 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include "colors.h"
+#include "Server.hpp"
 
 
 #define BUFFER_SIZE 1024
-class Server;
+class Server ;
 
 struct identification
 {
