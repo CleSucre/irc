@@ -12,35 +12,35 @@ std::string KickCommand::execute() {
     Server *server = _client.getServer();
 	std::string serverName = server->getName();
 	if (_cmd.size() < 3) {
-		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "KICK") + "\n");
+		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "KICK") + "\r\n");
 		return "";
 	}
 	Channel* channel = server->getChannelByName(_cmd[1]);
 	if (!channel) {
-		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), _cmd[1]) + "\n");
+		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), _cmd[1]) + "\r\n");
 		return "";
 	}
 	Client* toKick = server->getClientByName(_cmd[2]);
 	if (!toKick) {
-		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), _cmd[2]) + "\n");
+		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), _cmd[2]) + "\r\n");
 		return "";
 	}
 	int result = channel->kickUser(&_client, toKick);
 	switch (result) {
 		case 0: {
-			std::string msg = ":" + _client.getPrefix() + " KICK " + channel->getName() + " " + toKick->getNick()  + "\n";
-			if (_cmd.size() > 3) msg += " :" + joinFirstN(_cmd, 3); // mettre tout les arg de _cmd en un
+			std::string msg = ":" + _client.getPrefix() + " KICK " + channel->getName() + " " + toKick->getNick() + "\r\n";
+			if (_cmd.size() > 3) msg += " :" + joinFirstN(_cmd, 3);
 			channel->broadcast(_client, msg);
 			break;
 		}
 		case 1:
-			_client.sendMessage(":" + serverName + " " + ERR_CHANOPRIVSNEEDED(_client.getNick(), channel->getName()) + "\n");
+			_client.sendMessage(":" + serverName + " " + ERR_CHANOPRIVSNEEDED(_client.getNick(), channel->getName()) + "\r\n");
 			break;
 		case 2:
-			_client.sendMessage(":" + serverName + " " + ERR_NOTONCHANNEL(_client.getNick(), channel->getName()) + "\n");
+			_client.sendMessage(":" + serverName + " " + ERR_NOTONCHANNEL(_client.getNick(), channel->getName()) + "\r\n");
 			break;
 		case 3:
-			_client.sendMessage(":" + serverName + " " + ERR_USERNOTINCHANNEL(_client.getNick(), toKick->getNick(), channel->getName()) + "\n");
+			_client.sendMessage(":" + serverName + " " + ERR_USERNOTINCHANNEL(_client.getNick(), toKick->getNick(), channel->getName()) + "\r\n");
 			break;
 	}
 	return "";

@@ -14,8 +14,9 @@ std::string ListCommand::execute() {
 	if (_cmd.size() == 1) {
 		std::vector<Channel *> channels = server->getAllChannels();
 
-		_client.sendMessage(":" + serverName + " " + RPL_LISTSTART(_client.getNick()));
+		_client.sendMessage(":" + serverName + " " + RPL_LISTSTART(_client.getNick()) + "\r\n");
 
+		std::cout << "nombre channles = " << channels.size() << std::endl;
 		for (size_t i = 0; i < channels.size(); ++i) {
 			Channel* channel = channels[i];
 			std::string name = channel->getName();
@@ -25,20 +26,20 @@ std::string ListCommand::execute() {
 			std::string strUser = oss.str();
 			std::string topic = channel->getTopic();
 
-			_client.sendMessage(":" + serverName + " " + RPL_LIST(_client.getNick(), name, strUser, topic) + "\n");
+			_client.sendMessage(":" + serverName + " " + RPL_LIST(_client.getNick(), name, strUser, topic) + "\r\n");
 		}
 
-		_client.sendMessage(":" + serverName + " " + RPL_LISTEND(_client.getNick()) + "\n");
+		_client.sendMessage(":" + serverName + " " + RPL_LISTEND(_client.getNick()) + "\r\n");
 		return "";
 	}
 
-	_client.sendMessage(":" + serverName + " " + RPL_LISTSTART(_client.getNick()) + "\n");
+	_client.sendMessage(":" + serverName + " " + RPL_LISTSTART(_client.getNick()) + "\r\n");
 	for (size_t i = 1; i < _cmd.size(); ++i) {
 		const std::string& channelName = _cmd[i];
 		Channel* channel = server->getChannelByName(channelName);
 
 		if (!channel) {
-			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channelName) + "\n");
+			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channelName) + "\r\n");
 			continue;
 		}
 
@@ -51,9 +52,9 @@ std::string ListCommand::execute() {
 
 		std::string topic = channel->getTopic();
 
-		_client.sendMessage(":" + serverName + " " + RPL_LIST(_client.getNick(), name, strNbrUser, topic) + "\n");
+		_client.sendMessage(":" + serverName + " " + RPL_LIST(_client.getNick(), name, strNbrUser, topic) + "\r\n");
 	}
 
-	_client.sendMessage(":" + serverName + " " + RPL_LISTEND(_client.getNick()) + "\n");
+	_client.sendMessage(":" + serverName + " " + RPL_LISTEND(_client.getNick()) + "\r\n");
 	return "";
 }

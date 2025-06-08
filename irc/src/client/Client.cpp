@@ -81,7 +81,7 @@ std::string Client::getPrefix() const {
 
 /**
  * @brief Set valid password
- * 
+ *
  * This function sets the validPassword attribute of the client to true.
  */
 void Client::setValidPassword() {

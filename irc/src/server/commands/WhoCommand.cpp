@@ -19,7 +19,7 @@ std::string WhoCommand::execute() {
 			std::string gecos = "";
 
 			_client.sendMessage(":" + serverName + " 352 " + _client.getNick() + " * " + target->getUser() \
-			 + " " + target->getIp() + " " + serverName+ " " + target->getNick() + " H :0 " + gecos + "\n");
+			 + " " + target->getIp() + " " + serverName+ " " + target->getNick() + " H :0 " + gecos + "\r\n");
 		}
 
 		_client.sendMessage(":" + serverName + " 315 " + _client.getNick() + " * :End of /WHO list\n");

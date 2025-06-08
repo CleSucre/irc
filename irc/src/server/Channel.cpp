@@ -56,30 +56,30 @@ void Channel::setModeL(unsigned int limit) {
  * @return std::string The string representation of the channel modes.
  */
 std::string Channel::getModeString(bool isOperator) const {
-    std::string modeStr = "+";
-    std::string params;
+	std::string modeStr = "+";
+	std::string params;
 
-    if (_mode[mI])
-        modeStr += "i";
-    if (_mode[mT])
-        modeStr += "t";
-    if (_mode[mO])
-        modeStr += "o";
-    if (_mode[mK]) {
-        modeStr += "k";
-        if (isOperator)
-            params += " " + _password;
-    }
-    if (_mode[mL]) {
-        modeStr += "l";
-        if (isOperator) {
+	if (_mode[mI])
+		modeStr += "i";
+	if (_mode[mT])
+		modeStr += "t";
+	if (_mode[mO])
+		modeStr += "o";
+	if (_mode[mK]) {
+		modeStr += "k";
+		if (isOperator)
+			params += " " + _password;
+	}
+	if (_mode[mL]) {
+		modeStr += "l";
+		if (isOperator) {
 			std::ostringstream oss;
 			oss << _modeL;
 			params += " " + oss.str();
 		}
-    }
+	}
 
-    return modeStr + params;
+	return modeStr + params;
 }
 
 bool Channel::isAdmin(Client *client) const {
@@ -209,7 +209,7 @@ std::string Channel::getAllNicks() const {
 
 int Channel::kickUser(Client* client, Client* toKick) {
 	if (!client || !toKick || client == toKick)
-		return 0; // possible de gerer differment si on veux
+		return 0;
 
 	std::vector<std::pair<Client*, int> >::iterator itToKick = _user.end();
 	std::vector<std::pair<Client*, int> >::iterator itClient = _user.end();
@@ -238,7 +238,7 @@ int Channel::kickUser(Client* client, Client* toKick) {
 
 int Channel::inviteUser(Client* client, Client* toAdd) {
 	if (!client || !toAdd || client == toAdd)
-		return 0; // possible de gerer differment si on veux
+		return 0;
 
 	std::vector<std::pair<Client*, int> >::iterator itToAdd = _user.end();
 	std::vector<std::pair<Client*, int> >::iterator itClient = _user.end();
@@ -295,15 +295,15 @@ unsigned int Channel::getNbrMember() {
 	unsigned int nbr = 0;
 
 	for (std::vector<std::pair<Client*, int> >::const_iterator it = _user.begin(); it != _user.end(); ++it) {
-        if (it->second >= 1) {nbr++;}
-    }
+		if (it->second >= 1) {nbr++;}
+	}
 	return nbr;
 }
 
 void Channel::broadcast(const Client& sender, const std::string& message) {
-    for (std::vector<std::pair<Client*, int> >::const_iterator it = _user.begin(); it != _user.end(); ++it) {
-        if (it->first && it->first != &sender) {
-            it->first->sendMessage(message);
-        }
-    }
+	for (std::vector<std::pair<Client*, int> >::const_iterator it = _user.begin(); it != _user.end(); ++it) {
+		if (it->first && it->first != &sender) {
+			it->first->sendMessage(message);
+		}
+	}
 }

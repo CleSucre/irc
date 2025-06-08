@@ -13,7 +13,7 @@ std::string InviteCommand::execute() {
     Server *server = _client.getServer();
 	std::string serverName = server->getName();
 	if (_cmd.size() < 3) {
-		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "INVITE") + "\n");
+		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "INVITE") + "\r\n");
 		return "";
 	}
 
@@ -22,29 +22,29 @@ std::string InviteCommand::execute() {
 
 	Channel* channel = server->getChannelByName(channelName);
 	if (!channel) {
-		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channelName) + "\n");
+		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channelName) + "\r\n");
 		return "";
 	}
 
 	Client* toInvite = server->getClientByName(toInviteNick);
 	if (!toInvite) {
-		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), toInviteNick) + "\n");
+		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), toInviteNick) + "\r\n");
 		return "";
 	}
 
 	int result = channel->inviteUser(&_client, toInvite);
 	switch (result) {
 		case 0:
-			toInvite->sendMessage(":" + _client.getNick() + " INVITE " + toInviteNick + " " + channelName + "\n");
+			toInvite->sendMessage(":" + _client.getNick() + " INVITE " + toInviteNick + " " + channelName);
 			break;
 		case 1:
-			_client.sendMessage(":" + serverName + " " + ERR_CHANOPRIVSNEEDED(_client.getNick(), channelName) + "\n");
+			_client.sendMessage(":" + serverName + " " + ERR_CHANOPRIVSNEEDED(_client.getNick(), channelName) + "\r\n");
 			break;
 		case 2:
-			_client.sendMessage(":" + serverName + " " + ERR_NOTONCHANNEL(_client.getNick(), channelName) + "\n");
+			_client.sendMessage(":" + serverName + " " + ERR_NOTONCHANNEL(_client.getNick(), channelName) + "\r\n");
 			break;
 		case 3:
-			_client.sendMessage(":" + serverName + " " + ERR_USERONCHANNEL(_client.getNick(), toInviteNick, channelName) + "\n");
+			_client.sendMessage(":" + serverName + " " + ERR_USERONCHANNEL(_client.getNick(), toInviteNick, channelName) + "\r\n");
 			break;
 	}
 	return "";

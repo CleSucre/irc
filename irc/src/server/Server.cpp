@@ -12,7 +12,8 @@ Server::Server(std::string name, int port, const std::string& password, const st
 Server::~Server() {
     for (size_t i = 0; i < _clients.size(); ++i) {
         close(_clients[i]->getFd());
-        delete _clients[i];
+        removeClientInChannel(_clients[i]);
+		delete _clients[i];
     }
     _clients.clear();
 
@@ -137,7 +138,8 @@ bool Server::listenSocket() {
 bool Server::addClient(Client* client) {
     if (_clients.size() >= MAX_CLIENTS) {
         std::cerr << "Max clients reached" << std::endl;
-        delete client;
+        removeClientInChannel(client); // celui la a voir mais dans le doute il est al
+		delete client;
         return false;
     }
     _clients.push_back(client);
@@ -281,7 +283,8 @@ bool Server::processNewClient(int _server_fd) {
             SSL_shutdown(ssl);
             SSL_free(ssl);
         }
-        delete client;
+        removeClientInChannel(client);
+		delete client;
         close(client_fd);
         return false;
     }
@@ -315,7 +318,8 @@ bool Server::processFds(fd_set read_fds, int max_fd) {
         if (FD_ISSET(client->getFd(), &read_fds)) {
             if (!client->listen()) {
                 close(client->getFd());
-                delete client;
+                removeClientInChannel(client);
+				delete client;
                 _clients.erase(_clients.begin() + i);
             }
         }
@@ -361,6 +365,7 @@ void Server::start() {
 
     for (size_t i = 0; i < _clients.size(); ++i) {
         close(_clients[i]->getFd());
+        removeClientInChannel(_clients[i]);
         delete _clients[i];
     }
     _clients.clear();
@@ -374,4 +379,12 @@ void Server::start() {
  */
 void Server::stop() {
     _running = false;
+}
+
+void Server::removeClientInChannel(Client *client) {
+	for (std::vector<Channel*>::const_iterator it = _channels.begin(); it != _channels.end(); ++it) {
+		if (*it) {
+			(*it)->removeUser(client);
+		}
+	}
 }
