@@ -1,15 +1,17 @@
 #include "Bot.hpp"
 
-int Bot::_signal = 0;
+int Bot::_end_signal = 0;
 
 
-Bot::Bot() : _sock(-1), _nick("bot"), _current_channel(0), _channel_known(0), _last_check(std::time(NULL)) {}
+Bot::Bot() : _sock(-1), _nick("bot"), _current_channel(0), _channel_known(0), _last_check(std::time(NULL)) {
+	_ping_status._last_ping = std::time(NULL);
+	_ping_status._waiting_pong = false;
+}
 
 Bot::~Bot()
 {
-	if (_sock != -1) {
+	if (_sock != -1)
 		close(_sock);
-	}
 }
 
 /**
@@ -60,7 +62,6 @@ int	parse_packet(std::string &packet, int split_position)
  */
 int copy_channel(std::string &src, std::vector<Channel> &dest, int _channel_known)
 {
-	(void)_channel_known;
 	if (src.empty())
 		return (1);
 	for(std::vector<Channel>::iterator jt = dest.begin(); jt != dest.end(); ++jt)
@@ -92,7 +93,7 @@ void Bot::list_channels_handler(std::string &packet)
 		if (send(_sock, jointCmd.c_str(), jointCmd.size(), 0) < 0)
 		{
 			std::cerr << "Error sending JOIN command for channel: " << packet << std::endl;
-			return;
+			return ;
 		}
 		std::cout << "Joining channel: " << packet << std::endl; // TODO: Debug message
 		usleep(50);
@@ -311,6 +312,7 @@ void Bot::handle_global_data()
 	int len = recv(_sock, buffer, sizeof(buffer)-1, 0);
 	if (len <= 0) {
 		std::cerr << "Connection closed or error occurred\n";
+		_end_signal = 1;
 		return;
 	}
 	buffer[len] = '\0';
@@ -323,6 +325,8 @@ void Bot::handle_global_data()
 		message_reception(packet);
 	else if (packet.find("MODE") != std::string::npos)
 		operator_modification(packet);
+	else if (_ping_status._waiting_pong && packet.find("PONG :" + _ping_status.tokens) != std::string::npos)
+		_ping_status._waiting_pong = false;
 }
 
 /**
@@ -365,8 +369,18 @@ void Bot::communication_loop()
 	timeout.tv_sec = 1;
 	timeout.tv_usec = 0;
 	int max_fd = _sock;
-    while (_signal == 0) {
+    while (_end_signal == 0) {
 		time_t current_time = std::time(NULL);
+
+		if (_ping_status._waiting_pong == false && current_time - _ping_status._last_ping >= _ping_status._ping_delay)
+		{
+			std::cout << "Sending PING command to server..." << std::endl; // TODO: Debug message
+			_ping_status._last_ping = current_time;
+			_ping_status.tokens = current_time;
+			std::string pingCmd = "PING :" + _ping_status.tokens + "\r\n";
+			send(_sock, pingCmd.c_str(), pingCmd.size(), 0);
+			_ping_status._waiting_pong = true;
+		}
 		if (current_time - _last_check >= check_interval)
 		{
 			send(_sock, "LIST\r\n", 6, 0);
@@ -380,6 +394,11 @@ void Bot::communication_loop()
 		}
 		if (FD_ISSET(_sock, &read_fds))
 			handle_global_data();
+		if (_ping_status._waiting_pong && current_time - _ping_status._last_ping >= _ping_status._pong_waiting_delay)
+		{
+			std::cerr << "No PONG received, server may be down or not responding." << std::endl;
+			_end_signal = 1;
+		}
 	}
     return ;
 }
@@ -388,13 +407,13 @@ void Bot::server_authentification()
 {
     std::string nickCmd = "NICK " + std::string(_nick) + "\r\n";
     std::string userCmd = "USER " + std::string(_nick) + " 0 * :Server bot\r\n";
-    std::cout << "NICK command sent\n" << std::endl;
+    std::cout << "NICK command sent" << std::endl;
     send(_sock, nickCmd.c_str(), nickCmd.size(), 0);
 	usleep(100);
-    std::cout << "USER command sent\n" << std::endl;
+    std::cout << "USER command sent" << std::endl;
     send(_sock, userCmd.c_str(), userCmd.size(), 0);
     usleep(100);
-    std::cout << "Authentication complete, entering communication loop...\n" << std::endl;
+    std::cout << "Authentication complete, entering communication loop..." << std::endl;
     communication_loop();
 }
 
@@ -402,7 +421,7 @@ void Bot::server_authentification()
 void Bot::handleSignal(int sig)
 {
     if (sig == SIGINT || sig == SIGQUIT)
-        Bot::_signal = 1;
+        Bot::_end_signal = 1;
 }
 
 

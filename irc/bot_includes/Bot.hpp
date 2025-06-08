@@ -32,6 +32,15 @@ class Channel;
 class Client;
 
 
+struct ping
+{
+	time_t _last_ping;
+	bool _waiting_pong;
+	std::string tokens;
+	static const int _ping_delay = 10;
+	static const int _pong_waiting_delay = 5;
+};
+
 class Bot
 {
 	private:
@@ -42,7 +51,8 @@ class Bot
 		std::vector<Channel> _channel;
 		time_t _last_check;
 		static const int	check_interval = 5;
-		static int	_signal;
+		static int	_end_signal;
+		ping _ping_status;
 
 	public:
 		Bot();
