@@ -284,7 +284,11 @@ bool Channel::removeUser(Client* client) {
 }
 
 bool Channel::isEmpty() {
-	return _user.empty();
+	for (std::vector<std::pair<Client*, int> >::iterator it = _user.begin(); it != _user.end(); ++it) {
+		if (it->second != guess)
+			return false;
+	}
+	return true;
 }
 
 unsigned int Channel::getSize() {

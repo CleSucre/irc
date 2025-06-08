@@ -41,8 +41,9 @@ std::string JoinCommand::execute() {
 		return "";
 	}
 
-	if (channel->getMode(mK) && (_cmd.size() < 3 || channel->getPassword() != _cmd[2])) {
-		_client.sendMessage(":" + serverName + " " + ERR_BADCHANNELKEY(_client.getNick(), channelName) + "\r\n");
+	if (channel->getMode(mK)) {
+		if (_cmd.size() < 3 || channel->getPassword() != _cmd[2])
+			_client.sendMessage(":" + serverName + " " + ERR_BADCHANNELKEY(_client.getNick(), channelName) + "\r\n");
 		return "";
 	}
 

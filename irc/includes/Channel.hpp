@@ -83,13 +83,3 @@ class Channel {
 
 		void broadcast(const Client& sender, const std::string& message);
 };
-
-// void kick(Client* client, std::vector<std::string>& cmd);
-// void invite(Client* client, std::vector<std::string>& cmd);
-// void mode(Client* client, std::vector<std::string>& cmd);
-// void topic(Client* client, std::vector<std::string>& cmd);
-// void join(Client* client, std::vector<std::string>& cmd);
-// void privmsg(Client* client, std::vector<std::string>& cmd);
-// void part(Client* client, std::vector<std::string>& cmd);
-
-// faire une fonction qui send un msg a tout les membre du channel ?
