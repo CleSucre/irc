@@ -64,8 +64,10 @@ int copy_channel(std::string &src, std::vector<Channel> &dest, int _channel_know
 {
 	if (src.empty())
 		return (1);
+	std::cout << "Copying channel: " << src << std::endl; // TODO: Debug message
 	for(std::vector<Channel>::iterator jt = dest.begin(); jt != dest.end(); ++jt)
 	{
+
 		if (jt->getName() == src)
 			return (1);
 	}
@@ -85,8 +87,8 @@ int copy_channel(std::string &src, std::vector<Channel> &dest, int _channel_know
 void Bot::list_channels_handler(std::string &packet)
 {
 	CodeMap code_map;
-
 	parse_packet(packet, code_map.getIndex(packet));
+	std::cout << "Parsed packet: " << packet << std::endl; // TODO: Debug message
 	if (!copy_channel(packet, _channel, _channel_known))
 	{
 		std::string jointCmd = "JOIN " + packet + "\r\n";
@@ -269,16 +271,18 @@ void Bot::operator_modification(std::string &packet)
 	std::string grade = packet;
 	std::string target = packet;
 	std::string channel = packet;
-
 	parse_packet(channel, 3);
 	parse_packet(grade, 4);
 	parse_packet(target, 5);
 	if (channel.empty() || grade.empty() || target.empty() || target != _nick)
 	{
 		std::cerr << "Error parsing operator modification packet." << std::endl; //TODO: Debug message
+		std::cerr << "Packet: " << packet << std::endl; // TODO: Debug message
+		std::cerr << "Channel: " << channel << ", Grade: " << grade << ", Target: " << target << std::endl; // TODO: Debug message
 		return;
 	}
 	try{
+		std::cout << "Operator modification packet received for channel: " << channel << ", grade: " << grade << ", target: " << target << std::endl; // TODO: Debug message
 		_current_channel = find_channel_index(_channel, channel);
 		if (grade == "+o")
 			_channel[_current_channel].setOp(true);
@@ -316,11 +320,14 @@ void Bot::handle_global_data()
 		return;
 	}
 	buffer[len] = '\0';
+	std::cout << "Received data: " << buffer << std::endl; // TODO: Debug message
 	std::string packet(buffer);
 	if (packet.find(LIST_START) != std::string::npos)
 		list_channels_handler(packet);
 	else if (packet.find(WHO_START) != std::string::npos || packet.find(WHO_END) != std::string::npos)
 		list_users_handler(packet);
+	else if (packet.find("321") != std::string::npos)
+		std::cout << "Received this packet from the server: " << packet << std::endl; // TODO: Debug message
 	else if (packet.find("PRIVMSG") != std::string::npos)
 		message_reception(packet);
 	else if (packet.find("MODE") != std::string::npos)
@@ -345,6 +352,7 @@ void Bot::user_command()
 			continue;
 		std::string whoCmd = "WHO " + it->getName() + "\r\n";
 		send(_sock, whoCmd.c_str(), whoCmd.size(), 0);
+		// TODO: Maybe add a delay here to avoid flooding the server with WHO commands
 	}
 }
 
@@ -383,6 +391,7 @@ void Bot::communication_loop()
 		}
 		if (current_time - _last_check >= check_interval)
 		{
+			std::cout << "Checking for new channels and users..." << std::endl; // TODO: Debug message
 			send(_sock, "LIST\r\n", 6, 0);
 			user_command();
 			_last_check = current_time;
@@ -407,12 +416,15 @@ void Bot::server_authentification()
 {
     std::string nickCmd = "NICK " + std::string(_nick) + "\r\n";
     std::string userCmd = "USER " + std::string(_nick) + " 0 * :Server bot\r\n";
+	std::string passCmd = "PASS " + std::string(_password) + "\r\n";
     std::cout << "NICK command sent" << std::endl;
     send(_sock, nickCmd.c_str(), nickCmd.size(), 0);
 	usleep(100);
     std::cout << "USER command sent" << std::endl;
     send(_sock, userCmd.c_str(), userCmd.size(), 0);
     usleep(100);
+	std::cout << "PASS command sent" << std::endl;
+	send(_sock, passCmd.c_str(), passCmd.size(), 0);
     std::cout << "Authentication complete, entering communication loop..." << std::endl;
     communication_loop();
 }
@@ -435,7 +447,8 @@ int Bot::socket_creation(int argc, char* argv[])
 {
     const char* server = (argc > 1 ? argv[1] : "127.0.0.1");
     int port          = (argc > 2 ? std::atoi(argv[2]) : 6667);
-    _nick   = (argc > 3 ? argv[3] : "bot");
+	_password = (argc > 3 ? argv[3] : "\0");
+    _nick   = (argc > 4 ? argv[4] : "bot");
 
 	signal(SIGINT, Bot::handleSignal);
 	signal(SIGQUIT, Bot::handleSignal); 

@@ -37,8 +37,9 @@ struct ping
 	time_t _last_ping;
 	bool _waiting_pong;
 	std::string tokens;
-	static const int _ping_delay = 10;
-	static const int _pong_waiting_delay = 5;
+	/// TODO: Minimize the PING delay, PONG isn't implemented yet
+	static const int _ping_delay = 10000;
+	static const int _pong_waiting_delay = 5000;
 };
 
 class Bot
@@ -46,11 +47,12 @@ class Bot
 	private:
 		int _sock;
 		const char *_nick;
+		const char *_password;
 		size_t _current_channel;
 		size_t _channel_known;
 		std::vector<Channel> _channel;
 		time_t _last_check;
-		static const int	check_interval = 5;
+		static const int	check_interval = 10;
 		static int	_end_signal;
 		ping _ping_status;
 
