@@ -35,6 +35,7 @@ SRCS	= main.cpp \
 			server/commands/ModeCommand.cpp \
 			server/commands/NickCommand.cpp \
 			server/commands/PassCommand.cpp \
+			server/commands/PingCommand.cpp \
 			server/commands/PartCommand.cpp \
 			server/commands/PrivmsgCommand.cpp \
 			server/commands/TopicCommand.cpp \
