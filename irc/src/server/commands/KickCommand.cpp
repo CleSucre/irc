@@ -8,22 +8,22 @@ KickCommand::~KickCommand() {}
 /**
  * @brief KICK <channel> <user> [:reason]
  */
-std::string KickCommand::execute() {
+void KickCommand::execute() {
     Server *server = _client.getServer();
 	std::string serverName = server->getName();
 	if (_cmd.size() < 3) {
 		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "KICK") + "\r\n");
-		return "";
+		return;
 	}
 	Channel* channel = server->getChannelByName(_cmd[1]);
 	if (!channel) {
 		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), _cmd[1]) + "\r\n");
-		return "";
+		return;
 	}
 	Client* toKick = server->getClientByName(_cmd[2]);
 	if (!toKick) {
 		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), _cmd[2]) + "\r\n");
-		return "";
+		return;
 	}
 	int result = channel->kickUser(&_client, toKick);
 	switch (result) {
@@ -43,5 +43,4 @@ std::string KickCommand::execute() {
 			_client.sendMessage(":" + serverName + " " + ERR_USERNOTINCHANNEL(_client.getNick(), toKick->getNick(), channel->getName()) + "\r\n");
 			break;
 	}
-	return "";
 }

@@ -9,20 +9,20 @@ JoinCommand::~JoinCommand() {}
 /**
  * @brief JOIN <channel> [key]
  */
-std::string JoinCommand::execute() {
+void JoinCommand::execute() {
 	Server *server = this->getServer();
 	std::string serverName = server->getName();
 
 	if (_cmd.size() < 2) {
 		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "JOIN") + "\r\n");
-		return "";
+		return;
 	}
 
 	const std::string& channelName = _cmd[1];
 
 	if (channelName[0] != '#' && channelName[0] != '&') {
 		_client.sendMessage(":" + serverName + " " + ERR_UNKNOWNCOMMAND(_client.getNick(), "JOIN") + "\r\n");
-		return "";
+		return;
 	}
 
 	Channel* channel = server->getChannelByName(channelName);
@@ -33,23 +33,23 @@ std::string JoinCommand::execute() {
 	}
 
 	if (channel->getRole(&_client) >= user) {
-		return "";
+		return;
 	}
 
 	if (channel->getMode(mI) && !channel->isGuess(&_client)) {
 		_client.sendMessage(":" + serverName + " " + ERR_INVITEONLYCHAN(_client.getNick(), channelName) + "\r\n");
-		return "";
+		return;
 	}
 
 	if (channel->getMode(mK)) {
 		if (_cmd.size() < 3 || channel->getPassword() != _cmd[2])
 			_client.sendMessage(":" + serverName + " " + ERR_BADCHANNELKEY(_client.getNick(), channelName) + "\r\n");
-		return "";
+		return;
 	}
 
 	if (channel->getMode(mL) && channel->getSize() >= channel->getModeL()) {
 		_client.sendMessage(":" + serverName + " " + ERR_CHANNELISFULL(_client.getNick(), channelName) + "\r\n");
-		return "";
+		return;
 	}
 
 	channel->addUser(&_client);
@@ -85,5 +85,4 @@ std::string JoinCommand::execute() {
 
 	_client.sendMessage(":" + serverName + " " + RPL_NAMREPLY(_client.getNick(), channelName, names) + "\r\n");
 	_client.sendMessage(":" + serverName + " " + RPL_ENDOFNAMES(_client.getNick(), channelName) + "\r\n");
-	return "";
 }

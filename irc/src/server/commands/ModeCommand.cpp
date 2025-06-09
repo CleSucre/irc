@@ -8,40 +8,40 @@ ModeCommand::~ModeCommand() {}
 /**
  * @brief MODE <channel> <flags> [args]
  */
-std::string ModeCommand::execute() {
+void ModeCommand::execute() {
 	Server *server = _client.getServer();
 	std::string serverName = server->getName();
 	if (_cmd.size() < 2) {
 		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "MODE") + "\r\n");
-		return "";
+		return;
 	}
 
 	const std::string& target = _cmd[1];
 	if (target[0] != '#') {
 		_client.sendMessage(":" + serverName + " " + ERR_UNKNOWNCOMMAND(_client.getNick(), "MODE") + "\r\n");
-		return "";
+		return;
 	}
 
 	Channel* channel = server->getChannelByName(target);
 	if (!channel) {
 		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), target) + "\r\n");
-		return "";
+		return;
 	}
 
 	if (_cmd.size() == 2) {
 		std::string modes = channel->getModeString(channel->isAdmin(&_client));
 		_client.sendMessage(":" + serverName + " " + RPL_CHANNELMODEIS(_client.getNick(), target, modes) + "\r\n");
-		return "";
+		return;
 	}
 
 	if (_cmd.size() < 3 || _cmd[2].empty() || (_cmd[2][0] != '+' && _cmd[2][0] != '-')) {
 		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "MODE") + "\r\n");
-		return "";
+		return;
 	}
 
 	if (channel->getRole(&_client) != admin) {
 		_client.sendMessage(":" + serverName + " " + ERR_CHANOPRIVSNEEDED(_client.getNick(), target) + "\r\n");
-		return "";
+		return;
 	}
 
 	std::string flags = _cmd[2];
@@ -73,7 +73,7 @@ std::string ModeCommand::execute() {
 					if (adding) {
 						if (argIndex >= _cmd.size()) {
 							_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "MODE") + "\r\n");
-							return "";
+							return;
 						}
 						channel->setMode(mK, true);
 						channel->setPassword(_cmd[argIndex]);
@@ -89,7 +89,7 @@ std::string ModeCommand::execute() {
 					if (adding) {
 						if (argIndex >= _cmd.size()) {
 							_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "MODE") + "\r\n");
-							return "";
+							return;
 						}
 						channel->setMode(mL, true);
 						channel->setModeL(std::atoi(_cmd[argIndex].c_str()));
@@ -103,7 +103,7 @@ std::string ModeCommand::execute() {
 				case 'o': {
 					if (argIndex >= _cmd.size()) {
 						_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "MODE") + "\r\n");
-						return "";
+						return;
 					}
 
 					std::string targetNick = _cmd[argIndex++];
@@ -111,7 +111,7 @@ std::string ModeCommand::execute() {
 
 					if (!targetClient || channel->getRole(targetClient) < user) {
 						_client.sendMessage(":" + serverName + " " + ERR_USERNOTINCHANNEL(_client.getNick(), targetNick, target) + "\r\n");
-						return "";
+						return;
 					}
 
 					if (adding)
@@ -125,7 +125,7 @@ std::string ModeCommand::execute() {
 				}
 				default:
 					_client.sendMessage(":" + serverName + " " + ERR_UNKNOWNMODE(_client.getNick(), std::string(1, c)) + "\r\n");
-					return "";
+					return;
 			}
 		}
 	}
@@ -136,5 +136,4 @@ std::string ModeCommand::execute() {
 	msg += "\r\n";
 
 	channel->broadcast(_client, msg);
-	return "";
 }

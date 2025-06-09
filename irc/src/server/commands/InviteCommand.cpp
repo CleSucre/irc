@@ -8,13 +8,13 @@ InviteCommand::~InviteCommand() {}
 /**
  * @brief INVITE <user> <channel>
  */
-std::string InviteCommand::execute() {
+void InviteCommand::execute() {
 
     Server *server = _client.getServer();
 	std::string serverName = server->getName();
 	if (_cmd.size() < 3) {
 		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "INVITE") + "\r\n");
-		return "";
+		return;
 	}
 
 	const std::string& toInviteNick = _cmd[1];
@@ -23,13 +23,13 @@ std::string InviteCommand::execute() {
 	Channel* channel = server->getChannelByName(channelName);
 	if (!channel) {
 		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channelName) + "\r\n");
-		return "";
+		return;
 	}
 
 	Client* toInvite = server->getClientByName(toInviteNick);
 	if (!toInvite) {
 		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), toInviteNick) + "\r\n");
-		return "";
+		return;
 	}
 
 	int result = channel->inviteUser(&_client, toInvite);
@@ -47,5 +47,4 @@ std::string InviteCommand::execute() {
 			_client.sendMessage(":" + serverName + " " + ERR_USERONCHANNEL(_client.getNick(), toInviteNick, channelName) + "\r\n");
 			break;
 	}
-	return "";
 }

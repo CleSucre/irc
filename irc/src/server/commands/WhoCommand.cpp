@@ -8,7 +8,7 @@ WhoCommand::~WhoCommand() {}
 /**
  * @brief WHO [<mask> ["o"]]
  */
-std::string WhoCommand::execute() {
+void WhoCommand::execute() {
 	Server *server = _client.getServer();
 	std::string serverName = server->getName();
 	if (_cmd.size() == 1) {
@@ -22,19 +22,19 @@ std::string WhoCommand::execute() {
 		}
 
 		_client.sendMessage(":" + serverName + " 315 " + _client.getNick() + " * :End of /WHO list" + "\r\n");
-		return "";
+		return;
 	}
 
 	if (_cmd.size() > 2) {
 		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "WHO") + "\r\n");
-		return "";
+		return;
 	}
 
 	const std::string& channelName = _cmd[1];
 	Channel* channel = server->getChannelByName(channelName);
 	if (!channel) {
 		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channelName) + "\r\n");
-		return "";
+		return;
 	}
 
 	std::vector<Client*> Admin = channel->getAdmin();
@@ -54,6 +54,4 @@ std::string WhoCommand::execute() {
 	}
 
 	_client.sendMessage(":" + serverName + " 315 " + _client.getNick() + " " + channelName + " :End of /WHO list" + "\r\n");
-
-	return "";
 }

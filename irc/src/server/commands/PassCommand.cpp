@@ -10,20 +10,21 @@ PassCommand::~PassCommand() {
 /**
  * @brief PASS <password>
  */
-std::string PassCommand::execute() {
+void PassCommand::execute() {
 	Server *server = _client.getServer();
 	std::string serverName = server->getName();
 
 	if (_cmd.size() < 2) {
-		return ERR_NEEDMOREPARAMS(_client.getPrefix(), "PASS");
+		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getPrefix(), "PASS") + "\r\n");
+		return;
 	}
 
 	std::string password = this->getParameter(1);
 
 	if (!server->checkPassword(password)) {
-		return ERR_PASSWDMISMATCH(_client.getPrefix());
+		_client.sendMessage(":" + serverName + " " + ERR_PASSWDMISMATCH(_client.getPrefix()) + "\r\n");
+		return;
 	}
 	_client.setValidPassword();
 	getClient().checkIdentification();
-	return "";
 }

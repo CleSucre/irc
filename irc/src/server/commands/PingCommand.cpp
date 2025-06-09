@@ -8,15 +8,14 @@ PingCommand::~PingCommand() {}
 /**
  * @brief PING [msg]
  */
-std::string PingCommand::execute() {
+void PingCommand::execute() {
 	Server* server = _client.getServer();
 	std::string serverName = server->getName();
 
 	if (_cmd.size() < 2) {
 		_client.sendMessage(":" + serverName + " 409 " + _client.getNick() + " :No origin specified\r\n");
-		return "";
+		return;
 	}
 
 	_client.sendMessage(":" + serverName + " PONG " + serverName + " :" + joinFirstN(_cmd, 2) + "\r\n");
-	return "";
 }

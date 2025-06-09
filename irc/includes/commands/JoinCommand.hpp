@@ -8,7 +8,7 @@ class JoinCommand : public CommandBase {
         JoinCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~JoinCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // JOINCOMMAND_HPP

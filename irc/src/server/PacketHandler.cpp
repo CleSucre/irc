@@ -68,10 +68,7 @@ void packetRecieption(Client& client, const std::string& packet) {
 	CommandBase *cmd = getCommand(client, packet);
 
 	if (cmd) {
-		std::string result = cmd->pre_execute();
-		if (!result.empty()) {
-			client.sendMessage(result);
-		}
+		cmd->pre_execute();
 		delete cmd;
 	}
 	//TODO: Handle messages? oui

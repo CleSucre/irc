@@ -8,13 +8,13 @@ PartCommand::~PartCommand() {}
 /**
  * @brief PART #channel :Optional reason
  */
-std::string PartCommand::execute() {
+void PartCommand::execute() {
 	Server *server = _client.getServer();
 	std::string serverName = server->getName();
 
 	if (_cmd.size() < 2) {
 		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "PART") + "\r\n");
-		return "";
+		return;
 	}
 
 	std::vector<std::string> channels = split(_cmd[1], ',');
@@ -42,7 +42,6 @@ std::string PartCommand::execute() {
 		if (channel->isEmpty())
 			server->removeChannel(channel);
 	}
-	return "";
 }
 // si le derniere admin quitte le channel et qu'il reste des users, alors la le channel est bloquer
 // est ce qu'il faut mettre le le user le plus ancien en tant qu'admin ?

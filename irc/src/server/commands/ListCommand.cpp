@@ -8,7 +8,7 @@ ListCommand::~ListCommand() {}
 /**
  * @brief LIST [<channel>{,<channel>}]
  */
-std::string ListCommand::execute() {
+void ListCommand::execute() {
 	Server *server = _client.getServer();
 	std::string serverName = server->getName();
 	if (_cmd.size() == 1) {
@@ -29,7 +29,7 @@ std::string ListCommand::execute() {
 		}
 
 		_client.sendMessage(":" + serverName + " " + RPL_LISTEND(_client.getNick()) + "\r\n");
-		return "";
+		return;
 	}
 
 	_client.sendMessage(":" + serverName + " " + RPL_LISTSTART(_client.getNick()) + "\r\n");
@@ -55,5 +55,4 @@ std::string ListCommand::execute() {
 	}
 
 	_client.sendMessage(":" + serverName + " " + RPL_LISTEND(_client.getNick()) + "\r\n");
-	return "";
 }

@@ -8,7 +8,7 @@ class PingCommand : public CommandBase {
         PingCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~PingCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // PINGCOMMAND_HPP

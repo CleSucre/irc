@@ -8,7 +8,7 @@ class TopicCommand : public CommandBase {
         TopicCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~TopicCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // TOPICCOMMAND_HPP

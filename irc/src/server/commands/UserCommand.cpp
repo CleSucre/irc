@@ -10,12 +10,12 @@ UserCommand::~UserCommand() {
 /**
  * @brief USER <username> <hostname> <servername> :<realname>
  */
-std::string UserCommand::execute() {
+void UserCommand::execute() {
 	std::string username = getParameter(4);
 
 	if (!_client.setUser(username)) {
-		return ERR_NEEDMOREPARAMS(_client.getPrefix(), "USER");
+		_client.sendMessage(":" + getServer()->getName() + " " + ERR_NEEDMOREPARAMS(_client.getPrefix(), "USER") + "\r\n");
+		return;
 	}
 	getClient().checkIdentification();
-	return "";
 }

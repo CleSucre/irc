@@ -8,7 +8,7 @@ class QuitCommand : public CommandBase {
         QuitCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~QuitCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // QUITCOMMAND_HPP
