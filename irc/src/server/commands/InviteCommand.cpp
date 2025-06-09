@@ -35,7 +35,7 @@ std::string InviteCommand::execute() {
 	int result = channel->inviteUser(&_client, toInvite);
 	switch (result) {
 		case 0:
-			toInvite->sendMessage(":" + _client.getNick() + " INVITE " + toInviteNick + " " + channelName);
+			toInvite->sendMessage(":" + _client.getNick() + " INVITE " + toInviteNick + " " + channelName + "\r\n");
 			break;
 		case 1:
 			_client.sendMessage(":" + serverName + " " + ERR_CHANOPRIVSNEEDED(_client.getNick(), channelName) + "\r\n");

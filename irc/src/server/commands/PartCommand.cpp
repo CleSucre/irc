@@ -1,7 +1,7 @@
 #include "PartCommand.hpp"
 
 PartCommand::PartCommand(Client& client, const std::vector<std::string>& cmd)
-    : CommandBase(client, cmd, true) {}
+	: CommandBase(client, cmd, true) {}
 
 PartCommand::~PartCommand() {}
 
@@ -9,12 +9,14 @@ PartCommand::~PartCommand() {}
  * @brief PART #channel :Optional reason
  */
 std::string PartCommand::execute() {
-    Server *server = _client.getServer();
+	Server *server = _client.getServer();
 	std::string serverName = server->getName();
+
 	if (_cmd.size() < 2) {
 		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "PART") + "\r\n");
 		return "";
 	}
+
 	std::vector<std::string> channels = split(_cmd[1], ',');
 	std::string reason = (_cmd.size() >= 3) ? joinFirstN(_cmd, 2) : " ";
 
@@ -24,15 +26,23 @@ std::string PartCommand::execute() {
 			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channels[i]) + "\r\n");
 			continue;
 		}
+
 		if (channel->getRole(&_client) < 0) {
 			_client.sendMessage(":" + serverName + " " + ERR_NOTONCHANNEL(_client.getNick(), channels[i]) + "\r\n");
 			continue;
 		}
+
 		std::string msg = ":" + _client.getPrefix() + " PART " + channels[i] + "\r\n";
-		if (!reason.empty()) msg += " :" + reason;
+		if (!reason.empty())
+			msg += " :" + reason;
+
 		channel->broadcast(_client, msg);
 		channel->removeUser(&_client);
-		if (channel->isEmpty()) server->removeChannel(channel);
+
+		if (channel->isEmpty())
+			server->removeChannel(channel);
 	}
 	return "";
 }
+// si le derniere admin quitte le channel et qu'il reste des users, alors la le channel est bloquer
+// est ce qu'il faut mettre le le user le plus ancien en tant qu'admin ?

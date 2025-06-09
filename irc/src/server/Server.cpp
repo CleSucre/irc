@@ -334,7 +334,7 @@ bool Server::processFds(fd_set read_fds, int max_fd) {
         if (FD_ISSET(client->getFd(), &read_fds)) {
             if (!client->listen()) {
                 close(client->getFd());
-                removeClientInChannel(client);
+                // removeClientInChannel(client); // sa marche mieux sans mais j'en suis pas sur
 				delete client;
                 _clients.erase(_clients.begin() + i);
             }
@@ -398,9 +398,11 @@ void Server::stop() {
 }
 
 void Server::removeClientInChannel(Client *client) {
-	for (std::vector<Channel*>::const_iterator it = _channels.begin(); it != _channels.end(); ++it) {
+	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
 		if (*it) {
 			(*it)->removeUser(client);
+			if ((*it)->isEmpty()) // si plus personne dans le channel, supprime le channel
+				removeChannel(*it);
 		}
 	}
 }

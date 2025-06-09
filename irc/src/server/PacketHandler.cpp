@@ -45,7 +45,7 @@ CommandBase *getCommand(Client& client, const std::string& inputLine) {
 		return new TopicCommand(client, tokens);
 	} else if (tokens[0] == "LIST") {
 		return new ListCommand(client, tokens);
-	} else if (tokens[0] == "TOPIC") {
+	} else if (tokens[0] == "WHO") {
 		return new WhoCommand(client, tokens);
 	}
 	return NULL;

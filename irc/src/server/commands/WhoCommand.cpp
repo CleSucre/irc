@@ -16,38 +16,44 @@ std::string WhoCommand::execute() {
 
 		for (size_t i = 0; i < clients.size(); ++i) {
 			Client* target = clients[i];
-			std::string gecos = "";
 
-			_client.sendMessage(":" + serverName + " 352 " + _client.getNick() + " * " + target->getUser() \
-			 + " " + target->getIp() + " " + serverName+ " " + target->getNick() + " H :0 " + gecos + "\r\n");
+			_client.sendMessage(":" + serverName + " 352 " + _client.getNick() + " * " + target->getNick() + " " \
+			 + target->getIp() + " " + serverName+ " " + target->getNick() + " H :0 " + target->getUser() + "\r\n");
 		}
 
-		_client.sendMessage(":" + serverName + " 315 " + _client.getNick() + " * :End of /WHO list\n");
+		_client.sendMessage(":" + serverName + " 315 " + _client.getNick() + " * :End of /WHO list" + "\r\n");
 		return "";
 	}
-	// if (_cmd.size() >= 2) {
-	// 	const std::string& arg = _cmd[1];
 
-	// 	Channel* channel = server->getChannelByName(arg);
-	// 	if (channel) {
-	// 		std::vector<Client*> members = channel->getAllClients();
+	if (_cmd.size() > 2) {
+		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "WHO") + "\r\n");
+		return "";
+	}
 
-	// 		for (size_t i = 0; i < members.size(); ++i) {
-	// 			Client* target = members[i];
-	// 			std::string flag = "";
-	// 			if (channel->isAdmin(target))
-	// 				flag += "@";
+	const std::string& channelName = _cmd[1];
+	Channel* channel = server->getChannelByName(channelName);
+	if (!channel) {
+		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channelName) + "\r\n");
+		return "";
+	}
 
-	// 			std::string gecos = "";
+	std::vector<Client*> Admin = channel->getAdmin();
 
-	// 			_client.sendMessage(":" + serverName + " 352 " + _client.getNick() + " " + arg + " " + target->getUser()
-	// 			+ " " + target->getIp() + " " + serverName + " " + target->getNick() + " H" + flag + " :0 " + gecos);
-	// 		}
+	for (size_t i = 0; i < Admin.size(); ++i) {
+		Client* target = Admin[i];
+		_client.sendMessage(":" + serverName + " 352 " + _client.getNick() + " " + channelName + " " + target->getNick() \
+		 + " " + target->getIp() + " " + serverName + " " + target->getNick() + " H@ :0 " + target->getUser() + "\r\n");
+	}
 
-	// 		_client.sendMessage(":" + serverName + " 315 " + _client.getNick() + " " + arg + " :End of /WHO list");
-	// 		return "";
-	// 	}
-	// }
+	std::vector<Client*> User = channel->getUser();
+
+	for (size_t i = 0; i < User.size(); ++i) {
+		Client* target = User[i];
+		_client.sendMessage(":" + serverName + " 352 " + _client.getNick() + " " + channelName + " " + target->getNick() \
+		 + " " + target->getIp() + " " + serverName + " " + target->getNick() + " H :0 " + target->getUser() + "\r\n");
+	}
+
+	_client.sendMessage(":" + serverName + " 315 " + _client.getNick() + " " + channelName + " :End of /WHO list" + "\r\n");
 
 	return "";
 }
