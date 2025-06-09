@@ -10,3 +10,15 @@
 
 irc/ircserv
 irc/objs/
+
+# SSL certificates
+
+irc/ssl/
+
+# Tests
+
+irc/tests/
+
+*.o
+ircserv
+bot
