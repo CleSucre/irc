@@ -18,10 +18,19 @@ bool CommandBase::needAuth() const {
 }
 
 std::string CommandBase::getParameter(size_t index) const {
-    if (index < _cmd.size()) {
-        return _cmd[index];
+    if (index >= _cmd.size())
+        return "";
+
+    std::string param = _cmd[index];
+
+    if (!param.empty() && param[0] == ':') {
+        for (size_t i = index + 1; i < _cmd.size(); ++i) {
+            param += " " + _cmd[i];
+        }
+        return substr(param, 1, param.size() - 1);
     }
-    return "";
+
+    return param;
 }
 
 std::string CommandBase::pre_execute() {

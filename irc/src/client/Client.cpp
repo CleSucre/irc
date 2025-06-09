@@ -107,7 +107,7 @@ bool Client::listen() {
 	}
 
 	if (bytes_read <= 0) {
-		std::cerr << "Client " << _ip << " disconnected or error occurred." << std::endl;
+		disconnect();
 		return false;
 	}
 	buffer[bytes_read] = '\0';
@@ -137,5 +137,26 @@ void Client::sendMessage(const std::string& message) {
 		SSL_write(_ssl, message.c_str(), message.length());
 	} else {
 		send(_fd, message.c_str(), message.length(), 0);
+	}
+}
+
+/**
+ * @brief Disconnect the client properly in any case
+ * 
+ * This function will shutdown the SSL connection if it exists,
+ * free the SSL structure, close the file descriptor,
+ * and remove the client from the server's client list.
+ * 
+ * @param reason : reason for disconnection, default is "Client Quit"
+ */
+void Client::disconnect(const std::string& reason) {
+	std::cout << "Disconnecting client " << _ip << ": " << reason << std::endl;
+	if (_ssl) {
+		SSL_shutdown(_ssl);
+		SSL_free(_ssl);
+	}
+	if (_fd >= 0) {
+		close(_fd);
+		_fd = -1;
 	}
 }

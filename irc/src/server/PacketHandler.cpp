@@ -12,6 +12,7 @@
 #include "TopicCommand.hpp"
 #include "UserCommand.hpp"
 #include "WhoCommand.hpp"
+#include "QuitCommand.hpp"
 
 CommandBase *getCommand(Client& client, const std::string& inputLine) {
 	std::string line = inputLine;
@@ -50,6 +51,8 @@ CommandBase *getCommand(Client& client, const std::string& inputLine) {
 		return new UserCommand(client, tokens);
 	} else if (tokens[0] == "WHO") {
 		return new WhoCommand(client, tokens);
+	} else if (tokens[0] == "QUIT") {
+		return new QuitCommand(client, tokens);
 	}
 	return NULL;
 }

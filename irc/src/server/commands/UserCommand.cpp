@@ -13,13 +13,6 @@ UserCommand::~UserCommand() {
 std::string UserCommand::execute() {
 	std::string username = getParameter(4);
 
-	if (username[0] != ':') {
-		std::cerr << "Client " << _client.getIp() << " has entered a wrong UserName." << std::endl;
-		_client.sendMessage(username + "\r\n");
-		return "";
-	} else {
-		username = substr(username, 1, username.length() - 1);
-	}
 	if (!_client.setUser(username)) {
 		return ERR_NEEDMOREPARAMS(_client.getPrefix(), "USER");
 	}

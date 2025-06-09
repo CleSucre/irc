@@ -18,8 +18,11 @@ std::string NickCommand::execute() {
 
 	std::string newNick = this->getParameter(1);
 
-	if (!_client.setNick(newNick)) {
+	int result = _client.setNick(newNick);
+	if (result == 0) {
 		return ERR_ERRONEUSNICKNAME(_client.getPrefix(), newNick);
+	} else if (result == -1) {
+		return ERR_NICKNAMEINUSE(newNick);
 	}
 	getClient().checkIdentification();
 	return "";

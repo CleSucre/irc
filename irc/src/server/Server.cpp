@@ -189,6 +189,22 @@ Client* Server::getClientByNickname(const std::string& name) {
     return NULL;
 }
 
+bool Server::removeClient(Client* client) {
+    for (size_t i = 0; i < _clients.size(); ++i) {
+        if (_clients[i] == client) {
+            close(_clients[i]->getFd());
+        	//TODO: broadcast quit message to all client in same channels (once per client)
+            removeClientInChannel(_clients[i]);
+            delete _clients[i];
+            _clients.erase(_clients.begin() + i);
+            std::cout << RED << "Client " << YELLOW << client->getIp() << RED
+                      << " disconnected" << RESET << std::endl;
+            return true;
+        }
+    }
+    return false;
+}
+
 /**
  * @brief Adds a new channel to the server
  *

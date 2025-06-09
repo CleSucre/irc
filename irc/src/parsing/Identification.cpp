@@ -1,37 +1,35 @@
 #include "Client.hpp"
 #include "Utils.hpp"
+#include "Error.hpp"
 
 /**
  * @brief Set the NickName of the client
  * 		  Do nothing if new NickName is empty
  * @param name : NickName to set
- * @return true if ok, false if error
+ * @return 1 if ok, 0 if error or -1 if already registered
  */
-bool Client::setNick(const std::string &name)
+int Client::setNick(const std::string &name)
 {
     if (name.length() < 1)
 	{
-		std::cerr << "Client " << _fd << " has entered an empty NickName." << std::endl;
-		sendMessage("ERR_INVALIDNICKNAME :Invalid NickName, your Nickname will not change\r\n");
-		return false;
+		std::cerr << "Client " << _ip << " has entered an empty NickName." << std::endl;
+		return 0;
 	}
 	else if (name.length() > 10 || name.find(" ") != std::string::npos)
 	{
 		std::cerr << "Client " << _ip << " has entered a wrong NickName : " << name << std::endl;
-		sendMessage("ERR_INVALIDNICKNAME :Invalid NickName, your Nickname will not change\r\n");
-		return false;
+		return 0;
 	}
     //TODO: Check if new NickName isn't already taken in the server and in channels
 	if (_server->getClientByNickname(name) != NULL)
 	{
-		std::cerr<< "Client " << _fd << " has entered a NickName already taken : " << name << std::endl;
-		sendMessage("ERR_NICKNAMEINUSE :NickName already in use\r\n");
-		return false;
+		std::cerr<< "Client " << _ip << " has entered a NickName already taken : " << name << std::endl;
+		return -1;
 	}
 	if (_id.Nickname != name)
 		_id.Nickname = name;
 	std::cout << "Client " << _ip << " has entered a new NickName : " << _id.Nickname << std::endl;
-	return true;
+	return 1;
 }
 
 /**

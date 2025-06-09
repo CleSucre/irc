@@ -59,6 +59,7 @@ class Server {
         std::vector<Client*> getAllClients();
         Client *getClientByName(const std::string& name);
         Client *getClientByNickname(const std::string& name);
+        bool removeClient(Client* client);
 
         bool addChannel(Channel* channel);
         bool removeChannel(Channel* channel);
