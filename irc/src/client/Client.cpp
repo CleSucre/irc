@@ -155,8 +155,5 @@ void Client::disconnect(const std::string& reason) {
 		SSL_shutdown(_ssl);
 		SSL_free(_ssl);
 	}
-	if (_fd >= 0) {
-		close(_fd);
-		_fd = -1;
-	}
+	getServer()->removeClient(this);
 }
