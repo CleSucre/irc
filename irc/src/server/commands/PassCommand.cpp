@@ -4,7 +4,7 @@ PassCommand::PassCommand(Client& client, const std::vector<std::string>& cmd)
     : CommandBase(client, cmd, false) {}
 
 PassCommand::~PassCommand() {
-	
+
 }
 
 /**
@@ -15,13 +15,15 @@ std::string PassCommand::execute() {
 	std::string serverName = server->getName();
 
 	if (_cmd.size() < 2) {
-		return ERR_NEEDMOREPARAMS(_client.getPrefix(), "PASS");
+		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getPrefix(), "PASS") + "\r\n");
+		return "";
 	}
 
 	std::string password = this->getParameter(1);
 
 	if (!server->checkPassword(password)) {
-		return ERR_PASSWDMISMATCH(_client.getPrefix());
+		_client.sendMessage(":" + serverName + " " + ERR_PASSWDMISMATCH(_client.getPrefix()) + "\r\n");
+		return "";
 	}
 	_client.setValidPassword();
 	getClient().checkIdentification();

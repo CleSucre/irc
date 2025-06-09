@@ -15,22 +15,25 @@ std::string KickCommand::execute() {
 		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "KICK") + "\r\n");
 		return "";
 	}
+
 	Channel* channel = server->getChannelByName(_cmd[1]);
 	if (!channel) {
 		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), _cmd[1]) + "\r\n");
 		return "";
 	}
+
 	Client* toKick = server->getClientByName(_cmd[2]);
 	if (!toKick) {
 		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), _cmd[2]) + "\r\n");
 		return "";
 	}
+
 	int result = channel->kickUser(&_client, toKick);
 	switch (result) {
 		case 0: {
-			std::string msg = ":" + _client.getPrefix() + " KICK " + channel->getName() + " " + toKick->getNick() + "\r\n";
+			std::string msg = ":" + _client.getPrefix() + " KICK " + channel->getName() + " " + toKick->getNick();
 			if (_cmd.size() > 3) msg += " :" + joinFirstN(_cmd, 3);
-			channel->broadcast(_client, msg);
+			channel->broadcast(_client, msg + "\r\n");
 			break;
 		}
 		case 1:
