@@ -5,12 +5,13 @@
 #include "ListCommand.hpp"
 #include "ModeCommand.hpp"
 #include "NickCommand.hpp"
-#include "PassCommand.hpp"
 #include "PartCommand.hpp"
+#include "PassCommand.hpp"
+#include "PingCommand.hpp"
 #include "PrivmsgCommand.hpp"
 #include "TopicCommand.hpp"
-#include "WhoCommand.hpp"
 #include "UserCommand.hpp"
+#include "WhoCommand.hpp"
 
 CommandBase *getCommand(Client& client, const std::string& inputLine) {
 	std::string line = inputLine;
@@ -29,22 +30,24 @@ CommandBase *getCommand(Client& client, const std::string& inputLine) {
 		return new JoinCommand(client, tokens);
 	} else if (tokens[0] == "KICK") {
 		return new KickCommand(client, tokens);
+	} else if (tokens[0] == "LIST") {
+		return new ListCommand(client, tokens);
 	} else if (tokens[0] == "MODE") {
 		return new ModeCommand(client, tokens);
 	} else if (tokens[0] == "NICK") {
 		return new NickCommand(client, tokens);
-	} else if (tokens[0] == "USER") {
-		return new UserCommand(client, tokens);
-	} else if (tokens[0] == "PASS") {
-		return new PassCommand(client, tokens);
 	} else if (tokens[0] == "PART") {
 		return new PartCommand(client, tokens);
+	} else if (tokens[0] == "PASS") {
+		return new PassCommand(client, tokens);
+	} else if (tokens[0] == "PING") {
+		return new PingCommand(client, tokens);
 	} else if (tokens[0] == "PRIVMSG") {
 		return new PrivmsgCommand(client, tokens);
 	} else if (tokens[0] == "TOPIC") {
 		return new TopicCommand(client, tokens);
-	} else if (tokens[0] == "LIST") {
-		return new ListCommand(client, tokens);
+	} else if (tokens[0] == "USER") {
+		return new UserCommand(client, tokens);
 	} else if (tokens[0] == "WHO") {
 		return new WhoCommand(client, tokens);
 	}

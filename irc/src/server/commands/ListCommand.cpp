@@ -16,7 +16,6 @@ std::string ListCommand::execute() {
 
 		_client.sendMessage(":" + serverName + " " + RPL_LISTSTART(_client.getNick()) + "\r\n");
 
-		std::cout << "nombre channles = " << channels.size() << std::endl;
 		for (size_t i = 0; i < channels.size(); ++i) {
 			Channel* channel = channels[i];
 			std::string name = channel->getName();
