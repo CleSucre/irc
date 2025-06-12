@@ -19,9 +19,11 @@ std::string PrivmsgCommand::execute() {
 		_client.sendMessage(":" + serverName + " " + ERR_NOTEXTTOSEND(_client.getNick()) + "\r\n");
 		return "";
 	}
-	const std::string& target = _cmd[1];
-	std::string message = joinFirstN(_cmd, 2);
 
+	const std::string& target = _cmd[1];
+	std::string message = joinFirstN(std::vector<std::string>(_cmd.begin() + 2, _cmd.end()), _cmd.size());
+
+	std::cout << message << std::endl;
 	if (target[0] == '#') {
 		Channel* channel = server->getChannelByName(target);
 		if (!channel) {
@@ -33,15 +35,14 @@ std::string PrivmsgCommand::execute() {
 			return "";
 		}
 		channel->broadcast(_client, ":" + _client.getPrefix() + " PRIVMSG " + target + " :" + message + "\r\n");
-	} else if (target[0] == '&') {
+	}
+	else {
 		Client* recipient = server->getClientByName(target);
 		if (!recipient) {
 			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), target) + "\r\n");
 			return "";
 		}
 		recipient->sendMessage(":" + _client.getPrefix() + " PRIVMSG " + target + " :" + message + "\r\n");
-	} else {
-		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), target) + "\r\n");
 	}
 	return "";
 }
