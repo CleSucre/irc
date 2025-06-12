@@ -13,7 +13,7 @@ void PartCommand::execute() {
 	std::string serverName = server->getName();
 
 	if (_cmd.size() < 2) {
-		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "PART") + "\r\n");
+		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "PART"));
 		return;
 	}
 
@@ -23,16 +23,16 @@ void PartCommand::execute() {
 	for (size_t i = 0; i < channels.size(); ++i) {
 		Channel* channel = server->getChannelByName(channels[i]);
 		if (!channel) {
-			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channels[i]) + "\r\n");
+			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channels[i]));
 			continue;
 		}
 
 		if (channel->getRole(&_client) < 0) {
-			_client.sendMessage(":" + serverName + " " + ERR_NOTONCHANNEL(_client.getNick(), channels[i]) + "\r\n");
+			_client.sendMessage(":" + serverName + " " + ERR_NOTONCHANNEL(_client.getNick(), channels[i]));
 			continue;
 		}
 
-		std::string msg = ":" + _client.getPrefix() + " PART " + channels[i] + "\r\n";
+		std::string msg = ":" + _client.getPrefix() + " PART " + channels[i];
 		if (!reason.empty())
 			msg += " :" + reason;
 

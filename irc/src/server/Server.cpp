@@ -189,20 +189,6 @@ Client* Server::getClientByNickname(const std::string& name) {
     return NULL;
 }
 
-bool Server::removeClient(Client* client) {
-    for (size_t i = 0; i < _clients.size(); ++i) {
-        if (_clients[i] == client) {
-            std::string ip = _clients[i]->getIp();
-            removeClientInChannel(_clients[i]);
-            _clients.erase(_clients.begin() + i);
-            std::cout << RED << "Client " << YELLOW << ip << RED
-                      << " disconnected" << RESET << std::endl;
-            return true;
-        }
-    }
-    return false;
-}
-
 /**
  * @brief Adds a new channel to the server
  *
@@ -344,14 +330,20 @@ bool Server::processFds(fd_set read_fds, int max_fd) {
 
     // Parcours inverse pour pouvoir supprimer les clients dans la boucle
     for (int i = (int)_clients.size() - 1; i >= 0; --i) {
-        Client* client = _clients[i];
-        if (FD_ISSET(client->getFd(), &read_fds)) {
-            if (!client->listen()) {
-                close(client->getFd());
-                // removeClientInChannel(client); // sa marche mieux sans mais j'en suis pas sur
-				delete client;
-                _clients.erase(_clients.begin() + i);
-            }
+        if (FD_ISSET(_clients[i]->getFd(), &read_fds)) {
+            _clients[i]->listen();
+        }
+    }
+
+    for (std::vector<Client*>::iterator it = _clients.begin(); it != _clients.end();) {
+        if ((*it)->shouldBeDeleted()) {
+            removeClientInChannel(*it);
+            std::string ip = (*it)->getIp();
+            delete *it;
+            it = _clients.erase(it);
+            std::cout << RED << "Client " << YELLOW << ip << RED << " disconnected" << RESET << std::endl;
+        } else {
+            ++it;
         }
     }
     return true;

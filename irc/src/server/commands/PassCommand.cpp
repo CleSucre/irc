@@ -15,14 +15,14 @@ void PassCommand::execute() {
 	std::string serverName = server->getName();
 
 	if (_cmd.size() < 2) {
-		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getPrefix(), "PASS") + "\r\n");
+		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getPrefix(), "PASS"));
 		return;
 	}
 
 	std::string password = this->getParameter(1);
 
 	if (!server->checkPassword(password)) {
-		_client.sendMessage(":" + serverName + " " + ERR_PASSWDMISMATCH(_client.getPrefix()) + "\r\n");
+		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getPrefix(), "PASS"));
 		return;
 	}
 	_client.setValidPassword();

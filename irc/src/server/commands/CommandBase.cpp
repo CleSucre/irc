@@ -35,10 +35,10 @@ std::string CommandBase::getParameter(size_t index) const {
 
 void CommandBase::pre_execute() {
     if (_needAuth && !_client.checkIdentification()) {
-		_client.sendMessage(":" + getServer()->getName() + " " + ERR_NOTREGISTERED(_client.getPrefix()) + "\r\n");
+		_client.sendMessage(":" + getServer()->getName() + " " + ERR_NOTREGISTERED(_client.getPrefix()));
         return;
     } else if (_cmd.empty()) {
-		_client.sendMessage(":" + getServer()->getName() + " " + ERR_UNKNOWNCOMMAND(_client.getPrefix(), "") + "\r\n");
+		_client.sendMessage(":" + getServer()->getName() + " " + ERR_UNKNOWNCOMMAND(_client.getPrefix(), ""));
         return;
     }
     return execute();

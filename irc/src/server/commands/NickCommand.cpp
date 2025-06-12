@@ -13,7 +13,7 @@ void NickCommand::execute() {
 	std::string serverName = server->getName();
 
 	if (_cmd.size() < 2) {
-		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getPrefix(), "NICK") + "\r\n");
+		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getPrefix(), "NICK"));
 		return;
 	}
 
@@ -21,10 +21,10 @@ void NickCommand::execute() {
 
 	int result = _client.setNick(newNick);
 	if (result == 0) {
-		_client.sendMessage(":" + serverName + " " + ERR_ERRONEUSNICKNAME(_client.getPrefix(), newNick) + "\r\n");
+		_client.sendMessage(":" + serverName + " " + ERR_ERRONEUSNICKNAME(_client.getPrefix(), newNick));
 		return;
 	} else if (result == -1) {
-		_client.sendMessage(":" + serverName + " " + ERR_NICKNAMEINUSE(newNick) + "\r\n");
+		_client.sendMessage(":" + serverName + " " + ERR_NICKNAMEINUSE(newNick));
 		return;
 	}
 	getClient().checkIdentification();

@@ -13,9 +13,9 @@ void PingCommand::execute() {
 	std::string serverName = server->getName();
 
 	if (_cmd.size() < 2) {
-		_client.sendMessage(":" + serverName + " 409 " + _client.getNick() + " :No origin specified\r\n");
+		_client.sendMessage(":" + serverName + " 409 " + _client.getNick() + " :No origin specified");
 		return;
 	}
 
-	_client.sendMessage(":" + serverName + " PONG " + serverName + " :" + joinFirstN(_cmd, 2) + "\r\n");
+	_client.sendMessage(":" + serverName + " PONG " + serverName + " :" + joinFirstN(_cmd, 2));
 }

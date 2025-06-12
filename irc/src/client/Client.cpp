@@ -18,7 +18,6 @@ Client::~Client() {
 	close(_fd);
 }
 
-
 /*=============================================\\
 //					Getters						\\
 //=============================================	*/
@@ -133,11 +132,22 @@ bool Client::listen() {
  * @return true if ok, false if error
  */
 void Client::sendMessage(const std::string& message) {
+	std::string formattedMessage = message + "\r\n";
 	if (_ssl) {
-		SSL_write(_ssl, message.c_str(), message.length());
+		SSL_write(_ssl, formattedMessage.c_str(), formattedMessage.length());
 	} else {
-		send(_fd, message.c_str(), message.length(), 0);
+		send(_fd, formattedMessage.c_str(), formattedMessage.length(), 0);
 	}
+}
+
+/**
+ * @brief Check if the client should be deleted
+ * 
+ * This function checks if the client is marked for deletion.
+ * @return true if the client should be deleted, false otherwise
+ */
+bool Client::shouldBeDeleted() const {
+    return _toDelete;
 }
 
 /**
@@ -150,10 +160,6 @@ void Client::sendMessage(const std::string& message) {
  * @param reason : reason for disconnection, default is "Client Quit"
  */
 void Client::disconnect(const std::string& reason) {
-	std::cout << "Disconnecting client " << _ip << ": " << reason << std::endl;
-	if (_ssl) {
-		SSL_shutdown(_ssl);
-		SSL_free(_ssl);
-	}
-	getServer()->removeClient(this);
+    std::cout << "Disconnecting client " << _ip << ": " << reason << std::endl;
+    _toDelete = true;
 }

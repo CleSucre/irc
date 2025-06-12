@@ -69,19 +69,19 @@ bool Client::setUser(const std::string &username)
 	 */
 	//Check if the client is already registered
 	if (_id.certify == true || !_id.Username.empty()) {
-		sendMessage("462 ERR_ALREADYREGISTERED :Unauthorized command (already registered)\r\n");
+		sendMessage("462 ERR_ALREADYREGISTERED :Unauthorized command (already registered)");
 		std::cerr << "Client " << _id.Username << " is already registered." << std::endl;
 		return (false);
 	}
 	if (!isValidUsername(username)) {
-		sendMessage("ERR_INVALIDPARAMS :Invalid username\r\n");
+		sendMessage("ERR_INVALIDPARAMS :Invalid username");
 		std::cerr << "Client " << _id.Username << " has entered a wrong UserName." << std::endl;
 		return (false);
 	}
 	if (_server->getClientByName(username) != NULL)
 	{
 		std::cerr<< "Client " << _fd << " has entered a NickName already taken : " << username << std::endl;
-		sendMessage("ERR_NICKNAMEINUSE :NickName already in use\r\n");
+		sendMessage("ERR_NICKNAMEINUSE :NickName already in use");
 		return false;
 	}
 	//TODO: Check if new UserName isn't already taken in the server and in channels --- Same function as in Nickname
@@ -102,7 +102,7 @@ bool Client::checkIdentification()
 	if (_id.Username.length() > 0 && _id.Nickname.length() > 0 && _id.validPassword)
 	{
 		std::cout << "Client " << _ip << " is now identified as " << _id.Nickname << std::endl;
-		sendMessage("001 RPL_WELCOME :Welcome to the Internet Relay Network " + _id.Nickname + "\r\n");
+		sendMessage("001 RPL_WELCOME :Welcome to the Internet Relay Network " + _id.Nickname);
 		_id.certify = true;
 	}
 	return (_id.certify);
