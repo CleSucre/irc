@@ -8,6 +8,7 @@
 Client::Client(Server *server, int fd, char *ip, SSL* ssl) : _server(server), _fd(fd), _ip(ip), _ssl(ssl) {
    _id.validPassword = false;
    _id.certify = false;
+   _toDelete = false;
 }
 
 Client::~Client() {
