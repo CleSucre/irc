@@ -40,21 +40,25 @@ std::vector<Client> &Channel::getClientsList() {
  */
 size_t find_channel_index(const std::vector<Channel> &channels, const std::string &channel_name)
 {
+	std::cout << "Searching for channel: " << channel_name << std::endl; // TODO: Debug message
 	for (size_t i = 0; i < channels.size(); ++i)
 	{
 		if (channels[i].getName() == channel_name)
+		{
+			std::cout << "Channel found at index: " << i << std::endl; // TODO: Debug message
 			return (i);
+		}
 	}
 	throw(std::runtime_error("Channel not found"));
 }
 
-Client &Channel::getClientbyNick(const std::string &nick) {
+Client *Channel::getClientbyNick(const std::string &nick) {
 	for(std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		if (it->getNick() == nick) {
-			return *it;
+			return &(*it);
 		}
 	}
-	throw std::runtime_error("Client not found");
+	return NULL;
 }
 
 void Channel::setOp(bool op) {
@@ -63,4 +67,28 @@ void Channel::setOp(bool op) {
 
 bool Channel::getOp() const {
 	return _op;
+}
+
+Channel *Bot::getChannelbyName(const std::string &name) {
+	for (std::vector<Channel>::iterator it = _channel.begin(); it != _channel.end(); ++it) {
+		if (it->getName() == name) {
+			return &(*it);
+		}
+	}
+	return NULL;
+}
+
+Channel *Bot::getChannelbyId(size_t id) {
+	for (std::vector<Channel>::iterator it = _channel.begin(); it != _channel.end(); ++it) {
+		if (it->getId() == id) {
+			return &(*it);
+		}
+	}
+	std::cout << "Channel with ID " << id << " not found." << std::endl; // TODO: Debug message
+	return NULL;
+}
+
+void Channel::addClient(const Client &client) {
+	_clients.push_back(client);
+	std::cout << "Client " << client.getNick() << " added to channel " << _name << std::endl; // TODO: Debug message
 }

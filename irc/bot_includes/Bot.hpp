@@ -48,11 +48,12 @@ class Bot
 		int _sock;
 		const char *_nick;
 		const char *_password;
+		const char *_username;
 		size_t _current_channel;
 		size_t _channel_known;
 		std::vector<Channel> _channel;
 		time_t _last_check;
-		static const int	check_interval = 10;
+		static const int	check_interval = 5;
 		static int	_end_signal;
 		ping _ping_status;
 
@@ -70,8 +71,21 @@ class Bot
 		void operator_modification(std::string &packet);
 
 		static void handleSignal(int sig);
+		// Stock in channel.hpp for now
+		Channel *getChannelbyName(const std::string &name);
+		Channel *getChannelbyId(size_t id);
+		int copy_users(std::string src_name, std::vector<Channel> &channel, size_t _current_channel);
+
+
+
+
+		// DEBUG BY CHATGPT
+		void print_all_channels();
+		void list_channels_known();
 
 };
+
+int copy_users(std::string src_name, std::vector<Channel> &channel, size_t _current_channel);
 
 
 #endif

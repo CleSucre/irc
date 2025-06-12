@@ -67,13 +67,27 @@ int copy_channel(std::string &src, std::vector<Channel> &dest, int _channel_know
 	std::cout << "Copying channel: " << src << std::endl; // TODO: Debug message
 	for(std::vector<Channel>::iterator jt = dest.begin(); jt != dest.end(); ++jt)
 	{
-
 		if (jt->getName() == src)
 			return (1);
 	}
-	dest.push_back(Channel(src, dest.size() + 1));
+	dest.push_back(Channel(src, dest.size()));
+	std::cout << "New channel added: " << src << " with ID: " << dest.size() << "\n"; // TODO: Debug message
 	_channel_known++;
 	return (0);
+}
+
+void Bot::list_channels_known()
+{
+	std::cout << "Known channels: " << std::endl;
+	if (_channel.empty())
+	{
+		std::cout << "No channels known." << std::endl;
+		return ;
+	}
+	for (size_t i = 0; i < _channel.size(); ++i)
+	{
+		std::cout << "Channel " << i  << ": " << _channel[i].getName() << ", ID: " << _channel[i].getId() << std::endl;
+	}
 }
 
 /**
@@ -87,6 +101,22 @@ int copy_channel(std::string &src, std::vector<Channel> &dest, int _channel_know
 void Bot::list_channels_handler(std::string &packet)
 {
 	CodeMap code_map;
+	size_t pos = packet.find(LIST_START);
+	for (size_t i = 0; i < pos; ++i)
+	{
+		if (packet[i] == '\r' || packet[i] == '\n')
+		{
+			packet.erase(0, i + 1);
+			pos -= i + 1;
+		}
+	}
+	// TODO: Create a loop bc bot get every servers in a single packet
+	if (packet.empty())
+	{
+		std::cerr << "Error: Empty packet received for LIST command." << std::endl; // TODO: Debug message
+		return ;
+	}
+	std::cout << "Received LIST command response: " << packet << std::endl; // TODO: Debug message
 	parse_packet(packet, code_map.getIndex(packet));
 	std::cout << "Parsed packet: " << packet << std::endl; // TODO: Debug message
 	if (!copy_channel(packet, _channel, _channel_known))
@@ -104,7 +134,7 @@ void Bot::list_channels_handler(std::string &packet)
 
 /**
  * @brief Copy a username to a vector of Client objects
- * @param src Source std::string containing the username
+ * @param src_name Source std::string containing the username
  * @param dest Destination vector of Client objects
  * @note
  * This function checks if  username in the source exists in the destination vector.
@@ -112,30 +142,40 @@ void Bot::list_channels_handler(std::string &packet)
  * The ID is set to the current size of the destination vector plus one.
  * It will only add unique usernames to the destination vector.
  */
-int copy_users(std::string src, std::vector<Channel> &channel, size_t _current_channel)
+int Bot::copy_users(std::string src_name, std::vector<Channel> &channel, size_t _current_channel)
 {
-	std::vector<Client> &dest = channel[_current_channel - 1].getClientsList();
-	if (src.empty())
-		return (1);
-	for(std::vector<Client>::iterator it = dest.begin(); it != dest.end(); ++it)
+	std::vector<Client> &client_vec = channel[_current_channel].getClientsList();
+	std::cout << "Searching a client named : [" << src_name << "]" << std::endl;
+	if (src_name.empty())
 	{
-		if (it->getUsername() == src)
+		if (src_name.empty())
+			std::cerr << "Error: Empty username received." << std::endl; // TODO: Debug message
+		return (1);
+	}
+	std::cout << "Copying user: " << src_name << " to channel: " << channel[_current_channel].getName() << std::endl; // TODO: Debug message
+	for(std::vector<Client>::iterator it = client_vec.begin(); it != client_vec.end(); ++it)
+	{
+		std::cout << "Checking user: " << it->getUsername() << " with ID: " << it->getId() << std::endl; // TODO: Debug message
+		if (it->getUsername() == src_name)
 		{
+			std::cout << "User found: " << src_name << " with ID: " << it->getId() << std::endl; // TODO: Debug message
 			if (it->getWarningCount() >= 5)
 			{
-				std::string kickCmd = "KICK " + channel[_current_channel - 1].getName() + " " + it->getNick() + " :Too many warnings\r\n";
-				if (send(channel[_current_channel - 1].getClientsList()[0].getId(), kickCmd.c_str(), kickCmd.size(), 0) < 0)
+				std::string kickCmd = "KICK " + channel[_current_channel].getName() + " " + it->getNick() + " :Too many warnings\r\n";
+				if (send(channel[_current_channel].getClientsList()[0].getId(), kickCmd.c_str(), kickCmd.size(), 0) < 0)
 					return (1);
 				std::string privmsg = "PRIVMSG " + it->getNick() + " :You have been banned for too many flooding\r\n";
-				if (send(channel[_current_channel - 1].getClientsList()[0].getId(), privmsg.c_str(), privmsg.size(), 0) < 0)
+				if (send(channel[_current_channel].getClientsList()[0].getId(), privmsg.c_str(), privmsg.size(), 0) < 0)
 					return (1);
-				std::cout << "Kicking user: " << it->getNick() << " from channel: " << channel[_current_channel - 1].getName() << std::endl; // TODO: Debug message
+				std::cout << "Kicking user: " << it->getNick() << " from channel: " << channel[_current_channel].getName() << std::endl; // TODO: Debug message
 			}
+			std::cout << "User already exists: " << src_name << " with ID: " << it->getId() << std::endl; // TODO: Debug message
 			return (1);
 		}
 	}
-	dest.push_back(Client(src, "unknown", dest.size() + 1));
-	std::cout << "New user added: " << src << " with ID: " << dest.size() + 1 << "\n"; // TODO: Debug 
+	client_vec.push_back(Client(src_name, src_name, client_vec.size() + 1));
+	// _channel[_current_channel].addClient(Client(src_name, src_name, client_vec.size() + 1));
+	std::cout << "New user added: " << src_name << " with ID: " << client_vec.size() + 1 << "\n"; // TODO: Debug 
 	return (0);
 }
 
@@ -158,14 +198,31 @@ void Bot::list_users_handler(std::string &packet)
 	parse_packet(tmp, 4);
 	if (packet.empty() || tmp.empty())
 		return;
+	std::cout << "Received WHO command response: " << packet << std::endl; // TODO: Debug message
 	try
 	{
 		_current_channel = find_channel_index(_channel, tmp);
+		std::cout << "Current channel name: " << tmp << std::endl; // TODO: Debug message
+		std::cout << "Current channel index: " << _current_channel << std::endl; // TODO: Debug message
+		Channel *tmp_channel = getChannelbyId(_current_channel);
+		if (tmp_channel == NULL || tmp_channel->getName().empty())
+		{
+			std::cerr << "Channel " << tmp << " not found in known channels. [messages]" << std::endl; // TODO: Debug message
+			if (tmp_channel == NULL)
+				std::cerr << "Channel pointer is NULL." << std::endl; // TODO: Debug message
+			else
+				std::cerr << "Channel name is empty." << std::endl; // TODO: Debug message
+		}
+		std::cout << "Before copy_users" << std::endl; // TODO: Debug message
+		list_channels_known();
+
 		copy_users(packet, _channel, _current_channel);
+		
+		std::cout << "End copy" << std::endl; // TODO: Debug message
 	}
 	catch (const std::runtime_error &e)
 	{
-		std::cerr << "Error finding channel index: " << e.what() << std::endl;
+		std::cerr << "Error finding channel index in list_user: " << e.what() << std::endl;
 		return;
 	}
 }
@@ -185,16 +242,68 @@ void Bot::list_users_handler(std::string &packet)
 t_message split_packet_message(const std::string &packet)
 {
 	t_message msg;
-	msg.username = packet.substr(1, packet.find('!') - 1);
+	msg.username = packet.substr(2, packet.find('!') - 2);
 	size_t start = packet.find("PRIVMSG");
 	start += 8;
 	size_t end = packet.find(' ', start);
 	msg.channel = packet.substr(start, end - start);
 	start = packet.find(':',end) + 1;
 	msg.message = packet.substr(start);
+
 	return (msg);
 }
 
+// DEBUG FUNCTION BY GPT
+void Bot::print_all_channels()
+{
+	std::cout << "Known channels: " << std::endl;
+	if (_channel.empty())
+	{
+		std::cout << "No channels known." << std::endl;
+		return;
+	}
+	for (size_t i = 0; i < _channel.size(); ++i)
+	{
+		std::cout << "Channel " << i + 1 << ": " << _channel[i].getName() << ", ID: " << _channel[i].getId() << std::endl;
+		std::cout << "Clients in channel: " << std::endl;
+		std::vector<Client> &clients = _channel[i].getClientsList();
+		if (clients.empty())
+		{
+			std::cout << "No clients in channel." << std::endl;
+			continue;
+		}
+		for (size_t j = 0; j < clients.size(); ++j)
+		{
+			std::cout << "Client " << j + 1 << ": " << clients[j].getNick() << ", Username: " << clients[j].getUsername() 
+					  << ", ID: " << clients[j].getId() << ", Last message: " << clients[j].getLastMessage() 
+					  << ", Warning count: " << clients[j].getWarningCount() << std::endl;
+		}
+		std::cout << "Operator status: " << (_channel[i].getOp() ? "Yes" : "No") << std::endl;
+		std::cout << "----------------------------------------" << std::endl;
+	}
+}
+
+
+
+void print_client_in_channel(const Channel &channel)
+{
+	std::cout << "Clients in channel " << channel.getName() << ": " << std::endl;
+	std::vector<Client> &clients = const_cast<Channel&>(channel).getClientsList();
+	if (clients.empty())
+	{
+		std::cout << "No clients in channel." << std::endl;
+		return;
+	}
+	for (size_t i = 0; i < clients.size(); ++i)
+	{
+		std::cout << "Client " << i + 1 << ": " << clients[i].getNick() 
+				  << ", Username: " << clients[i].getUsername() 
+				  << ", ID: " << clients[i].getId() 
+				  << ", Last message: " << clients[i].getLastMessage() 
+				  << ", Warning count: " << clients[i].getWarningCount() 
+				  << std::endl;
+	}
+}
 
 /**
  * @brief Handle incoming messages from the IRC server
@@ -214,17 +323,55 @@ void Bot::message_reception(std::string &packet)
 	std::cout << "Message received from " << msg.username << " in channel " << msg.channel << ": " << msg.message << std::endl; // TODO: Debug message
 	try{
 		_current_channel = find_channel_index(_channel, msg.channel);
-		if (_channel[_current_channel - 1].getOp() == false)
-			throw std::runtime_error("Bot is not an operator in the channel" + msg.channel + ", cannot process message");
-		Client &tmp = _channel[_current_channel - 1].getClientbyNick(msg.username);
-		if (tmp.getLastMessage() - std::time(NULL) > check_interval)
+		std::cout << "Current channel index: " << _current_channel << std::endl; // TODO: Debug message
+		print_all_channels(); // TODO: Debug message
+
+		Channel *tmp_channel = getChannelbyId(_current_channel);
+		if (tmp_channel == NULL || tmp_channel->getName().empty())
 		{
-			int warning_count = tmp.getWarningCount();
-			tmp.setWarningCount(warning_count + 1);
+			std::cerr << "Channel " << msg.channel << " not found in known channels. [messages]" << std::endl; // TODO: Debug message
+			if (tmp_channel == NULL)
+				std::cerr << "Channel pointer is NULL." << std::endl; // TODO: Debug message
+			else
+				std::cerr << "Channel name is empty." << std::endl; // TODO: Debug message
+			return;
+		}
+		if (tmp_channel->getClientsList().empty())
+		{
+			std::cerr << "No clients in channel " << msg.channel << std::endl; // TODO: Debug message
+			return;
+		}
+		if (tmp_channel->getOp() == false)
+		{
+			std::cerr << "Bot is not an operator in the channel " << msg.channel << ", cannot process message" << std::endl; // TODO: Debug message
+			return;
+		}
+		std::cout << "---------------------------" << std::endl; // TODO: Debug message
+		std::cout << "Here is tmp_channel name: " << tmp_channel->getName() << std::endl; // TODO: Debug message
+		std::cout << "Here is tmp_channel ID: " << tmp_channel->getId() << std::endl; // TODO: Debug message
+		std::cout << "Here is msg.username: " << msg.username << std::endl; // TODO: Debug message
+		std::cout << "---------------------------" << std::endl; // TODO: Debug message
+
+		Client *tmp = tmp_channel->getClientbyNick(msg.username);
+		for (std::vector<Client>::iterator it = tmp_channel->getClientsList().begin(); it != tmp_channel->getClientsList().end(); ++it)
+		{
+			std::cout << "Client in channel: " << it->getNick() << ", Username: " << it->getUsername() 
+					  << ", ID: " << it->getId() << std::endl; // TODO: Debug message
+		}
+		if (tmp == NULL)
+		{
+			std::cerr << "Error in getclientbyNick: " << msg.username << " not found in channel " << msg.channel << std::endl; // TODO: Debug message
+			std::cerr << "User " << msg.username << " not found in channel " << msg.channel << std::endl; // TODO: Debug message
+			return;
+		}
+		if (tmp->getLastMessage() - std::time(NULL) > check_interval)
+		{
+			int warning_count = tmp->getWarningCount();
+			tmp->setWarningCount(warning_count + 1);
 			if (warning_count >= 3)
 			{
-				std::cout << "Flood detected from user: " << tmp.getNick() << ", disconnecting..." << std::endl; // TODO: Debug message
-				std::string kickCmd = "KICK " + msg.channel + " " + tmp.getNick() + " :Flood detected\r\n";
+				std::cout << "Flood detected from user: " << tmp->getNick() << ", disconnecting..." << std::endl; // TODO: Debug message
+				std::string kickCmd = "KICK " + msg.channel + " " + tmp->getNick() + " :Flood detected\r\n";
 				send(_sock, kickCmd.c_str(), kickCmd.size(), 0);
 				usleep(50);
 				std::string privmsg = "PRIVMSG " + msg.username + " :You have been kicked for flooding\r\n";
@@ -233,17 +380,17 @@ void Bot::message_reception(std::string &packet)
 			}
 			else
 			{
-				std::cout << "Warning sent to user: " << tmp.getNick() << ", warning count: " << warning_count + 1 << std::endl; // TODO: Debug message
+				std::cout << "Warning sent to user: " << tmp->getNick() << ", warning count: " << warning_count + 1 << std::endl; // TODO: Debug message
 				std::string privmsg = "PRIVMSG " + msg.username + " :You have been warned for flooding\r\n";
 				send(_sock, privmsg.c_str(), privmsg.size(), 0);
 				usleep(50);
 			}
 		}
-		tmp.resetLastMessage();
+		tmp->resetLastMessage();
 	}
 	catch (const std::runtime_error &e)
 	{
-		std::cerr << "Error finding channel index: " << e.what() << std::endl; //TODO: Debug message
+		std::cerr << "Error finding channel index in message_reception: " << e.what() << std::endl; //TODO: Debug message
 		return;
 	}
 }
@@ -263,6 +410,7 @@ void Bot::message_reception(std::string &packet)
  * Example of a packet received:
  * :irc.example.com MODE #channel +o username
  * :server MODE <channel> <grade> <target>
+ * bite!bite@192.168.65.1 MODE #test +o Serverbot
  */
 void Bot::operator_modification(std::string &packet)
 {
@@ -274,7 +422,7 @@ void Bot::operator_modification(std::string &packet)
 	parse_packet(channel, 3);
 	parse_packet(grade, 4);
 	parse_packet(target, 5);
-	if (channel.empty() || grade.empty() || target.empty() || target != _nick)
+	if (channel.empty() || grade.empty() || target.empty())
 	{
 		std::cerr << "Error parsing operator modification packet." << std::endl; //TODO: Debug message
 		std::cerr << "Packet: " << packet << std::endl; // TODO: Debug message
@@ -284,8 +432,18 @@ void Bot::operator_modification(std::string &packet)
 	try{
 		std::cout << "Operator modification packet received for channel: " << channel << ", grade: " << grade << ", target: " << target << std::endl; // TODO: Debug message
 		_current_channel = find_channel_index(_channel, channel);
+		if (_current_channel >= _channel.size() || _channel[_current_channel].getName() != channel)
+		{
+			std::cerr << "Channel " << channel << " not found in known channels. [operator]" << std::endl; // TODO: Debug message
+			return;
+		}
 		if (grade == "+o")
+		{
 			_channel[_current_channel].setOp(true);
+			std::cout << "Setting bots operator status to true for channel: " << channel << std::endl; // TODO: Debug message
+			std::cout << "Status : " << _channel[_current_channel].getOp() << std::endl; // TODO: Debug message
+
+		}
 		else if (grade == "-o")
 			_channel[_current_channel].setOp(false);
 	}
@@ -320,20 +478,21 @@ void Bot::handle_global_data()
 		return;
 	}
 	buffer[len] = '\0';
-	std::cout << "Received data: " << buffer << std::endl; // TODO: Debug message
+	// std::cout << "Received data: " << buffer << std::endl; // TODO: Debug message
+	std::cout << "Received data: " << buffer << "total length: " << len << std::endl; // TODO: Debug message>
 	std::string packet(buffer);
 	if (packet.find(LIST_START) != std::string::npos)
 		list_channels_handler(packet);
 	else if (packet.find(WHO_START) != std::string::npos || packet.find(WHO_END) != std::string::npos)
 		list_users_handler(packet);
-	else if (packet.find("321") != std::string::npos)
-		std::cout << "Received this packet from the server: " << packet << std::endl; // TODO: Debug message
 	else if (packet.find("PRIVMSG") != std::string::npos)
 		message_reception(packet);
 	else if (packet.find("MODE") != std::string::npos)
 		operator_modification(packet);
 	else if (_ping_status._waiting_pong && packet.find("PONG :" + _ping_status.tokens) != std::string::npos)
 		_ping_status._waiting_pong = false;
+	else // TODO : DEBUG IF
+		std::cout << "Received this packet from the server: " << packet << std::endl; // TODO: Debug message
 }
 
 /**
@@ -346,12 +505,19 @@ void Bot::handle_global_data()
  */
 void Bot::user_command()
 {
+	std::cout << "Sending WHO command to all channels where the bot is an operator..." << std::endl; // TODO: Debug message
 	for (std::vector<Channel>::iterator it = _channel.begin(); it != _channel.end(); ++it)
 	{
 		if (it->getOp() == false)
+		{
+			std::cout << "Bot is not an operator in channel: " << it->getName() << ", skipping WHO command." << std::endl; // TODO: Debug message
 			continue;
+		}
+		std::cout << "Sending WHO command for channel: " << it->getName() << std::endl; // TODO: Debug message
+
 		std::string whoCmd = "WHO " + it->getName() + "\r\n";
 		send(_sock, whoCmd.c_str(), whoCmd.size(), 0);
+		usleep(50);
 		// TODO: Maybe add a delay here to avoid flooding the server with WHO commands
 	}
 }
@@ -377,6 +543,7 @@ void Bot::communication_loop()
 	timeout.tv_sec = 1;
 	timeout.tv_usec = 0;
 	int max_fd = _sock;
+	int interval = 0;
     while (_end_signal == 0) {
 		time_t current_time = std::time(NULL);
 
@@ -389,11 +556,20 @@ void Bot::communication_loop()
 			send(_sock, pingCmd.c_str(), pingCmd.size(), 0);
 			_ping_status._waiting_pong = true;
 		}
-		if (current_time - _last_check >= check_interval)
+		if (_last_check == 0 || current_time - _last_check >= check_interval)
 		{
+
 			std::cout << "Checking for new channels and users..." << std::endl; // TODO: Debug message
-			send(_sock, "LIST\r\n", 6, 0);
-			user_command();
+			if (interval == 0)
+			{
+				send(_sock, "LIST\r\n", 6, 0);
+				interval = 1;
+			}
+			else 
+			{
+				user_command();
+				interval = 0;
+			}
 			_last_check = current_time;
 		}
 		read_fds = master_fds;
@@ -415,7 +591,7 @@ void Bot::communication_loop()
 void Bot::server_authentification()
 {
     std::string nickCmd = "NICK " + std::string(_nick) + "\r\n";
-    std::string userCmd = "USER " + std::string(_nick) + " 0 * :Server bot\r\n";
+    std::string userCmd = "USER " + std::string(_username) + " 0 * :" + _username + "\r\n";
 	std::string passCmd = "PASS " + std::string(_password) + "\r\n";
     std::cout << "NICK command sent" << std::endl;
     send(_sock, nickCmd.c_str(), nickCmd.size(), 0);
@@ -449,6 +625,7 @@ int Bot::socket_creation(int argc, char* argv[])
     int port          = (argc > 2 ? std::atoi(argv[2]) : 6667);
 	_password = (argc > 3 ? argv[3] : "\0");
     _nick   = (argc > 4 ? argv[4] : "bot");
+	_username = (argc > 5 ? argv[5] : "Serverbot");
 
 	signal(SIGINT, Bot::handleSignal);
 	signal(SIGQUIT, Bot::handleSignal); 

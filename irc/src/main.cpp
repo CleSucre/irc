@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     std::string certFile = argc > 3 ? argv[3] : DEFAULT_CERT_FILE;
     std::string keyFile = argc > 4 ? argv[4] : DEFAULT_KEY_FILE;
 
-    Server server("PIPI HOUSE", port, password, certFile, keyFile);
+    Server server("IRC_SERV", port, password, certFile, keyFile);
     server.start();
     return 0;
 }
