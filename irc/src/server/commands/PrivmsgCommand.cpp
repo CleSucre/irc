@@ -21,9 +21,11 @@ void PrivmsgCommand::execute() {
 		_client.sendMessage(":" + serverName + " " + ERR_NOTEXTTOSEND(_client.getNick()));
 		return;
 	}
-	const std::string& target = _cmd[1];
-	std::string message = joinFirstN(_cmd, 2);
 
+	const std::string& target = _cmd[1];
+	std::string message = joinFirstN(std::vector<std::string>(_cmd.begin() + 2, _cmd.end()), _cmd.size());
+
+	std::cout << message << std::endl;
 	if (target[0] == '#') {
 		Channel* channel = server->getChannelByName(target);
 		if (!channel) {

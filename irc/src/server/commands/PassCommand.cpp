@@ -4,7 +4,7 @@ PassCommand::PassCommand(Client& client, const std::vector<std::string>& cmd)
     : CommandBase(client, cmd, false) {}
 
 PassCommand::~PassCommand() {
-	
+
 }
 
 /**
