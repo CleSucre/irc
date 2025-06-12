@@ -8,7 +8,7 @@ class KickCommand : public CommandBase {
         KickCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~KickCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // KICKCOMMAND_HPP

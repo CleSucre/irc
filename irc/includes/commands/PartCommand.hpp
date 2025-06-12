@@ -8,7 +8,7 @@ class PartCommand : public CommandBase {
         PartCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~PartCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // PARTCOMMAND_HPP

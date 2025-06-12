@@ -8,7 +8,7 @@ class InviteCommand : public CommandBase {
         InviteCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~InviteCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // INVITECOMMAND_HPP

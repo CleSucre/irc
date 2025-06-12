@@ -8,7 +8,7 @@ class PrivmsgCommand : public CommandBase {
         PrivmsgCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~PrivmsgCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // PRIVMSGCOMMAND_HPP

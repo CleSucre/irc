@@ -6,84 +6,105 @@ JoinCommand::JoinCommand(Client& client, const std::vector<std::string>& cmd)
 
 JoinCommand::~JoinCommand() {}
 
-/**
- * @brief JOIN <channel> [key]
- */
-std::string JoinCommand::execute() {
-	Server *server = this->getServer();
-	std::string serverName = server->getName();
 
-	if (_cmd.size() < 2) {
-		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "JOIN") + "\r\n");
-		return "";
+std::string JoinCommand::generateJoinResponse(Client* client, Channel* channel) {
+	std::ostringstream response;
+
+	response << ":" << client->getNick() << "!user@host JOIN :" << channel->getName() << "\r\n";
+
+	std::string topic = channel->getTopic();
+	std::string serverName = client->getServer()->getName();
+	if (!topic.empty())
+		response << ":" << serverName << " 332 " << client->getNick() << " " << channel->getName()
+		         << " :" << topic << "\r\n";
+	else
+		response << ":" << serverName << " 331 " << client->getNick() << " " << channel->getName()
+		         << " :No topic is set\r\n";
+
+	response << ":" << serverName << " 333 " << client->getNick() << " "
+	         << channel->getName() << " " << client->getNick() << " " << generateTimestamp() << "\r\n";
+
+	std::string names = channel->getAllNicks();
+	response << ":" << serverName << " 353 " << client->getNick() << " = "
+	         << channel->getName() << " :" << names << "\r\n";
+
+	response << ":" << serverName << " 366 " << client->getNick() << " "
+	         << channel->getName() << " :End of /NAMES list.\r\n";
+
+	return response.str();
+}
+Channel* JoinCommand::processChannel(const std::string& channelName, const std::string& key) {
+	if (channelName.empty()) {
+		_client.sendMessage(":" + _client.getServer()->getName() + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channelName));
+		return NULL;
 	}
-
-	const std::string& channelName = _cmd[1];
 
 	if (channelName[0] != '#' && channelName[0] != '&') {
-		_client.sendMessage(":" + serverName + " " + ERR_UNKNOWNCOMMAND(_client.getNick(), "JOIN") + "\r\n");
-		return "";
+		_client.sendMessage(":" + _client.getServer()->getName() + " " + ERR_UNKNOWNCOMMAND(_client.getNick(), "JOIN"));
+		return NULL;
 	}
 
+	Server* server = _client.getServer();
 	Channel* channel = server->getChannelByName(channelName);
+
+	bool newlyCreated = false;
 	if (!channel) {
 		channel = new Channel(channelName);
 		server->addChannel(channel);
 		channel->addAdmin(&_client);
+		newlyCreated = true;
 	}
 
-	if (channel->getRole(&_client) >= user) {
-		return "";
-	}
+	if (!newlyCreated && channel->getRole(&_client) >= user)
+		return NULL;
 
 	if (channel->getMode(mI) && !channel->isGuess(&_client)) {
-		_client.sendMessage(":" + serverName + " " + ERR_INVITEONLYCHAN(_client.getNick(), channelName) + "\r\n");
-		return "";
+		_client.sendMessage(":" + server->getName() + " " + ERR_INVITEONLYCHAN(_client.getNick(), channelName));
+		return NULL;
 	}
 
-	if (channel->getMode(mK)) {
-		if (_cmd.size() < 3 || channel->getPassword() != _cmd[2])
-			_client.sendMessage(":" + serverName + " " + ERR_BADCHANNELKEY(_client.getNick(), channelName) + "\r\n");
-		return "";
+	if (channel->getMode(mK) && channel->getPassword() != key) {
+		_client.sendMessage(":" + server->getName() + " " + ERR_BADCHANNELKEY(_client.getNick(), channelName));
+		return NULL;
 	}
 
 	if (channel->getMode(mL) && channel->getSize() >= channel->getModeL()) {
-		_client.sendMessage(":" + serverName + " " + ERR_CHANNELISFULL(_client.getNick(), channelName) + "\r\n");
-		return "";
+		_client.sendMessage(":" + server->getName() + " " + ERR_CHANNELISFULL(_client.getNick(), channelName));
+		return NULL;
 	}
 
-	channel->addUser(&_client);
+	if (!newlyCreated)
+		channel->addUser(&_client);
 
-	std::string joinMsg = ":" + _client.getPrefix() + " JOIN :" + channelName + "\r\n";
-	channel->broadcast(_client, joinMsg);
+	return channel;
+}
 
-	std::string topic = channel->getTopic();
-	if (topic.empty())
-		_client.sendMessage(":" + serverName + " " + RPL_NOTOPIC(_client.getNick(), channelName) + "\r\n");
-	else
-		_client.sendMessage(":" + serverName + " " + RPL_TOPIC(_client.getNick(), channelName, topic) + "\r\n");
+/**
+ * @brief JOIN <channel> [key]
+ * 			JOIN <channel1>,<channel2>,... [key1,key2,...]
+ */
+void JoinCommand::execute() {
+	Server* server = _client.getServer();
+	std::string serverName = server->getName();
 
-	std::string names;
-	std::vector<Client*> admins = channel->getAdmin();
-	std::vector<Client*> users = channel->getUser();
-
-	std::set<std::string> already;
-
-	for (size_t i = 0; i < admins.size(); ++i) {
-		names += "@" + admins[i]->getNick() + " ";
-		already.insert(admins[i]->getNick());
+	if (_cmd.size() < 2) {
+		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "JOIN"));
+		return;
 	}
 
-	for (size_t i = 0; i < users.size(); ++i) {
-		if (already.find(users[i]->getNick()) == already.end()) {
-			names += users[i]->getNick() + " ";
-		}
+	std::vector<std::string> channels = split(getParameter(1), ',');
+	std::vector<std::string> keys = split(getParameter(2), ',');
+
+	for (size_t i = 0; i < channels.size(); ++i) {
+		std::string chanName = channels[i];
+		std::string key = (i < keys.size()) ? keys[i] : "";
+
+		Channel* channel = processChannel(chanName, key);
+		if (!channel)
+			continue;
+
+		std::string joinMsg = ":" + _client.getPrefix() + " JOIN :" + chanName;
+		channel->broadcast(_client, joinMsg);
+		_client.sendMessage(generateJoinResponse(&_client, channel));
 	}
-
-	if (!names.empty() && names[names.size() - 1] == ' ')
-		names.erase(names.size() - 1);
-
-	_client.sendMessage(":" + serverName + " " + RPL_NAMREPLY(_client.getNick(), channelName, names) + "\r\n");
-	_client.sendMessage(":" + serverName + " " + RPL_ENDOFNAMES(_client.getNick(), channelName) + "\r\n");
-	return "";
 }

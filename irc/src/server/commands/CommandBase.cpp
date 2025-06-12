@@ -33,16 +33,15 @@ std::string CommandBase::getParameter(size_t index) const {
     return param;
 }
 
-std::string CommandBase::pre_execute() {
+void CommandBase::pre_execute() {
     if (_needAuth && !_client.checkIdentification()) {
-        return ERR_NOTREGISTERED(_client.getPrefix());
-    }
-    if (_cmd.empty()) {
-        return ERR_UNKNOWNCOMMAND(_client.getPrefix(), "");
+		_client.sendMessage(":" + getServer()->getName() + " " + ERR_NOTREGISTERED(_client.getPrefix()));
+        return;
+    } else if (_cmd.empty()) {
+		_client.sendMessage(":" + getServer()->getName() + " " + ERR_UNKNOWNCOMMAND(_client.getPrefix(), ""));
+        return;
     }
     return execute();
 }
 
-std::string CommandBase::execute() {
-    return "";
-}
+void CommandBase::execute() {}

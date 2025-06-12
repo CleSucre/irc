@@ -8,7 +8,7 @@ QuitCommand::~QuitCommand() {}
 /**
  * @brief QUIT [ :<Quit message> ]
  */
-std::string QuitCommand::execute() {
+void QuitCommand::execute() {
 	std::string message;
 	if (_cmd.size() > 1) {
 		message = getParameter(1);
@@ -16,5 +16,4 @@ std::string QuitCommand::execute() {
 		message = "Client Quit";
 	}
 	_client.disconnect(message);
-	return "";
 }

@@ -189,20 +189,6 @@ Client* Server::getClientByNickname(const std::string& name) {
     return NULL;
 }
 
-bool Server::removeClient(Client* client) {
-    for (size_t i = 0; i < _clients.size(); ++i) {
-        if (_clients[i] == client) {
-            std::string ip = _clients[i]->getIp();
-            removeClientInChannel(_clients[i]);
-            _clients.erase(_clients.begin() + i);
-            std::cout << RED << "Client " << YELLOW << ip << RED
-                      << " disconnected" << RESET << std::endl;
-            return true;
-        }
-    }
-    return false;
-}
-
 /**
  * @brief Adds a new channel to the server
  *
@@ -344,14 +330,20 @@ bool Server::processFds(fd_set read_fds, int max_fd) {
 
     // Parcours inverse pour pouvoir supprimer les clients dans la boucle
     for (int i = (int)_clients.size() - 1; i >= 0; --i) {
-        Client* client = _clients[i];
-        if (FD_ISSET(client->getFd(), &read_fds)) {
-            if (!client->listen()) {
-                close(client->getFd());
-                // removeClientInChannel(client); // sa marche mieux sans mais j'en suis pas sur
-				delete client;
-                _clients.erase(_clients.begin() + i);
-            }
+        if (FD_ISSET(_clients[i]->getFd(), &read_fds)) {
+            _clients[i]->listen();
+        }
+    }
+
+    for (std::vector<Client*>::iterator it = _clients.begin(); it != _clients.end();) {
+        if ((*it)->shouldBeDeleted()) {
+            removeClientInChannel(*it);
+            std::string ip = (*it)->getIp();
+            delete *it;
+            it = _clients.erase(it);
+            std::cout << RED << "Client " << YELLOW << ip << RED << " disconnected" << RESET << std::endl;
+        } else {
+            ++it;
         }
     }
     return true;
@@ -378,8 +370,13 @@ void Server::start() {
     }
 
     _running = true;
-    std::cout << GREEN << "Server started on port " << YELLOW
-              << _port << GREEN << " with password " << YELLOW << _password << RESET << std::endl;
+    if (_password.empty()) {
+        std::cout << GREEN << "Server started on port " << YELLOW
+                << _port << GREEN << " with no password " << RESET << std::endl;
+    } else {
+        std::cout << GREEN << "Server started on port " << YELLOW
+                << _port << GREEN << " with password " << YELLOW << _password << RESET << std::endl;
+    }
 
     fd_set read_fds;
     int max_fd;
@@ -412,11 +409,15 @@ void Server::stop() {
 }
 
 void Server::removeClientInChannel(Client *client) {
-	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
+	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ) {
 		if (*it) {
 			(*it)->removeUser(client);
-			if ((*it)->isEmpty()) // si plus personne dans le channel, supprime le channel
-				removeChannel(*it);
+			if ((*it)->isEmpty()) {
+				delete *it;
+				it = _channels.erase(it);
+				continue;
+			}
 		}
+		++it;
 	}
 }

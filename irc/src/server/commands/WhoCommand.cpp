@@ -8,7 +8,7 @@ WhoCommand::~WhoCommand() {}
 /**
  * @brief WHO [<mask> ["o"]]
  */
-std::string WhoCommand::execute() {
+void WhoCommand::execute() {
 	Server *server = _client.getServer();
 	std::string serverName = server->getName();
 	if (_cmd.size() == 1) {
@@ -18,23 +18,23 @@ std::string WhoCommand::execute() {
 			Client* target = clients[i];
 
 			_client.sendMessage(":" + serverName + " 352 " + _client.getNick() + " * " + target->getNick() + " " \
-			 + target->getIp() + " " + serverName+ " " + target->getNick() + " H :0 " + target->getUser() + "\r\n");
+			 + target->getIp() + " " + serverName+ " " + target->getNick() + " H :0 " + target->getUser());
 		}
 
-		_client.sendMessage(":" + serverName + " 315 " + _client.getNick() + " * :End of /WHO list" + "\r\n");
-		return "";
+		_client.sendMessage(":" + serverName + " 315 " + _client.getNick() + " * :End of /WHO list");
+		return;
 	}
 
 	if (_cmd.size() > 2) {
-		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "WHO") + "\r\n");
-		return "";
+		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "WHO"));
+		return;
 	}
 
 	const std::string& channelName = _cmd[1];
 	Channel* channel = server->getChannelByName(channelName);
 	if (!channel) {
-		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channelName) + "\r\n");
-		return "";
+		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channelName));
+		return;
 	}
 
 	std::vector<Client*> Admin = channel->getAdmin();
@@ -42,7 +42,7 @@ std::string WhoCommand::execute() {
 	for (size_t i = 0; i < Admin.size(); ++i) {
 		Client* target = Admin[i];
 		_client.sendMessage(":" + serverName + " 352 " + _client.getNick() + " " + channelName + " " + target->getNick() \
-		 + " " + target->getIp() + " " + serverName + " " + target->getNick() + " H@ :0 " + target->getUser() + "\r\n");
+		 + " " + target->getIp() + " " + serverName + " " + target->getNick() + " H@ :0 " + target->getUser());
 	}
 
 	std::vector<Client*> User = channel->getUser();
@@ -50,10 +50,8 @@ std::string WhoCommand::execute() {
 	for (size_t i = 0; i < User.size(); ++i) {
 		Client* target = User[i];
 		_client.sendMessage(":" + serverName + " 352 " + _client.getNick() + " " + channelName + " " + target->getNick() \
-		 + " " + target->getIp() + " " + serverName + " " + target->getNick() + " H :0 " + target->getUser() + "\r\n");
+		 + " " + target->getIp() + " " + serverName + " " + target->getNick() + " H :0 " + target->getUser());
 	}
 
-	_client.sendMessage(":" + serverName + " 315 " + _client.getNick() + " " + channelName + " :End of /WHO list" + "\r\n");
-
-	return "";
+	_client.sendMessage(":" + serverName + " 315 " + _client.getNick() + " " + channelName + " :End of /WHO list");
 }
