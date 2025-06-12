@@ -20,6 +20,14 @@ int Client::setNick(const std::string &name)
 		std::cerr << "Client " << _ip << " has entered a wrong NickName : " << name << std::endl;
 		return 0;
 	}
+	if (!std::isalpha(name[0]))
+        return false;
+    for (size_t i = 0; i < name.length(); ++i) {
+        char c = name[i];
+        if (!std::isalnum(c) && c != '-' && c != '[' && c != ']' && c != '\\') {
+            return false;
+        }
+    }
     //TODO: Check if new NickName isn't already taken in the server and in channels
 	if (_server->getClientByNickname(name) != NULL)
 	{

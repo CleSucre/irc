@@ -12,7 +12,7 @@ void NickCommand::execute() {
     Server *server = _client.getServer();
 	std::string serverName = server->getName();
 
-	if (_cmd.size() < 2) {
+	if (_cmd.size() != 2) {
 		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getPrefix(), "NICK"));
 		return;
 	}
