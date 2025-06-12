@@ -370,8 +370,13 @@ void Server::start() {
     }
 
     _running = true;
-    std::cout << GREEN << "Server started on port " << YELLOW
-              << _port << GREEN << " with password " << YELLOW << _password << RESET << std::endl;
+    if (_password.empty()) {
+        std::cout << GREEN << "Server started on port " << YELLOW
+                << _port << GREEN << " with no password " << RESET << std::endl;
+    } else {
+        std::cout << GREEN << "Server started on port " << YELLOW
+                << _port << GREEN << " with password " << YELLOW << _password << RESET << std::endl;
+    }
 
     fd_set read_fds;
     int max_fd;
@@ -404,11 +409,15 @@ void Server::stop() {
 }
 
 void Server::removeClientInChannel(Client *client) {
-	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
+	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ) {
 		if (*it) {
 			(*it)->removeUser(client);
-			if ((*it)->isEmpty()) // si plus personne dans le channel, supprime le channel
-				removeChannel(*it);
+			if ((*it)->isEmpty()) {
+				delete *it;
+				it = _channels.erase(it);
+				continue;
+			}
 		}
+		++it;
 	}
 }

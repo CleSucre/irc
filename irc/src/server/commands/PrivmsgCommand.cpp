@@ -7,6 +7,8 @@ PrivmsgCommand::~PrivmsgCommand() {}
 
 /**
  * @brief PRIVMSG target [:message]
+ * 		if target is a channel, replace target by: #channel
+ * 		if target is a user, replace target by: username
  */
 void PrivmsgCommand::execute() {
 	Server *server = _client.getServer();

@@ -37,3 +37,9 @@ std::string substr(const std::string& str, size_t start, size_t length) {
 
     return result;
 }
+
+std::string generateTimestamp() {
+	std::ostringstream oss;
+	oss << time(NULL);
+	return oss.str();
+}
