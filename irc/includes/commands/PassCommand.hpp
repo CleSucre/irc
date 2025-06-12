@@ -8,7 +8,7 @@ class PassCommand : public CommandBase {
         PassCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~PassCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // PASSCOMMAND_HPP

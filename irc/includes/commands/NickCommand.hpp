@@ -8,7 +8,7 @@ class NickCommand : public CommandBase {
         NickCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~NickCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // NICKCOMMAND_HPP

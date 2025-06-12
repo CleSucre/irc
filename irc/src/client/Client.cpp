@@ -8,6 +8,7 @@
 Client::Client(Server *server, int fd, char *ip, SSL* ssl) : _server(server), _fd(fd), _ip(ip), _ssl(ssl) {
    _id.validPassword = false;
    _id.certify = false;
+   _toDelete = false;
 }
 
 Client::~Client() {
@@ -17,7 +18,6 @@ Client::~Client() {
 	}
 	close(_fd);
 }
-
 
 /*=============================================\\
 //					Getters						\\
@@ -107,7 +107,7 @@ bool Client::listen() {
 	}
 
 	if (bytes_read <= 0) {
-		std::cerr << "Client " << _ip << " disconnected or error occurred." << std::endl;
+		disconnect();
 		return false;
 	}
 	buffer[bytes_read] = '\0';
@@ -133,9 +133,34 @@ bool Client::listen() {
  * @return true if ok, false if error
  */
 void Client::sendMessage(const std::string& message) {
+	std::string formattedMessage = message + "\r\n";
 	if (_ssl) {
-		SSL_write(_ssl, message.c_str(), message.length());
+		SSL_write(_ssl, formattedMessage.c_str(), formattedMessage.length());
 	} else {
-		send(_fd, message.c_str(), message.length(), 0);
+		send(_fd, formattedMessage.c_str(), formattedMessage.length(), 0);
 	}
+}
+
+/**
+ * @brief Check if the client should be deleted
+ * 
+ * This function checks if the client is marked for deletion.
+ * @return true if the client should be deleted, false otherwise
+ */
+bool Client::shouldBeDeleted() const {
+    return _toDelete;
+}
+
+/**
+ * @brief Disconnect the client properly in any case
+ * 
+ * This function will shutdown the SSL connection if it exists,
+ * free the SSL structure, close the file descriptor,
+ * and remove the client from the server's client list.
+ * 
+ * @param reason : reason for disconnection, default is "Client Quit"
+ */
+void Client::disconnect(const std::string& reason) {
+    std::cout << "Disconnecting client " << _ip << ": " << reason << std::endl;
+    _toDelete = true;
 }

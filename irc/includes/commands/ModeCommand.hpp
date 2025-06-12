@@ -8,7 +8,7 @@ class ModeCommand : public CommandBase {
         ModeCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~ModeCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // MODECOMMAND_HPP

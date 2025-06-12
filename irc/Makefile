@@ -38,6 +38,7 @@ SRCS	= main.cpp \
 			server/commands/PingCommand.cpp \
 			server/commands/PartCommand.cpp \
 			server/commands/PrivmsgCommand.cpp \
+			server/commands/QuitCommand.cpp \
 			server/commands/TopicCommand.cpp \
 			server/commands/WhoCommand.cpp \
 			server/commands/UserCommand.cpp \
