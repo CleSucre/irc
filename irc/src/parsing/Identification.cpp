@@ -99,8 +99,7 @@ bool Client::checkIdentification()
 {
 	if (_id.certify)
 		return (true);
-	if (_id.Username.length() > 0 && _id.Nickname.length() > 0 && _id.validPassword)
-	{
+	if (_id.Username.length() > 0 && _id.Nickname.length() > 0 && (_id.validPassword || _server->checkPassword(""))) {
 		std::cout << "Client " << _ip << " is now identified as " << _id.Nickname << std::endl;
 		sendMessage("001 RPL_WELCOME :Welcome to the Internet Relay Network " + _id.Nickname);
 		_id.certify = true;
