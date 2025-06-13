@@ -59,7 +59,7 @@ void Bot::message_reception(std::string &packet)
 			std::cerr << "User " << msg.username << " not found in channel " << msg.channel << std::endl; // TODO: Debug message
 			return;
 		}
-		if (tmp->getLastMessage() - std::time(NULL) > check_interval)
+		if (tmp->getLastMessage() != 0 && tmp->getLastMessage() - std::time(NULL) > check_interval)
 		{
 			int warning_count = tmp->getWarningCount();
 			tmp->setWarningCount(warning_count + 1);
