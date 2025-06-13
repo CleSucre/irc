@@ -44,7 +44,7 @@ void Bot::handle_global_data()
 		operator_modification(packet);
 	else if (_ping_status._waiting_pong && packet.find("PONG :" + _ping_status.tokens) != std::string::npos)
 		_ping_status._waiting_pong = false;
-	else // TODO : DEBUG IF
-		std::cout << "Received this packet from the server: " << packet << std::endl; // TODO: Debug message
+	else if (packet.find("433") != std::string::npos)
+		_end_signal = 1;
 }
 
