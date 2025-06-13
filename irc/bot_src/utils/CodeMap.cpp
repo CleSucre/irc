@@ -7,10 +7,12 @@
  * 352 corresponds to the list of users in a channel.
  */
 CodeMap::CodeMap(){
-	_entry[0].code_name = LIST_START;
-	_entry[0].packet_index = 4; 
+	_entry[0].code_name = CHANNEL_START;
+	_entry[0].packet_index = 3;
 	_entry[1].code_name = WHO_START;
 	_entry[1].packet_index = 5;
+	_entry[2].code_name = LIST_START;
+	_entry[2].packet_index = 4; 
 }
 
 CodeMap::~CodeMap(){}

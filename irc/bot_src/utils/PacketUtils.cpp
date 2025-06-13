@@ -22,18 +22,18 @@
 int	parse_packet(std::string &packet, int split_position)
 {
 	if (split_position < 1) {
-		std::cerr << "Error: Invalid split position." << std::endl;
+		std::cerr << "Error: Invalid split position." << std::endl; //TODO: Debug message
 		return (-1);
 	}
 	std::vector<std::string> tokens;
 	tokens = split(packet, ' ');
 	if (tokens.size() < (size_t) split_position) {
-		std::cerr << "Error: Packet too small." << std::endl;
+		std::cerr << "Error: Packet too small." << std::endl; //TODO: Debug message
 		return (-1);
 	}
 	packet = tokens[split_position - 1];
 	if (packet.empty()) {
-		std::cerr << "Error: Packet is empty." << std::endl;
+		std::cerr << "Error: Packet is empty." << std::endl; //TODO: Debug message
 		return (-1);
 	}
 	return (0);

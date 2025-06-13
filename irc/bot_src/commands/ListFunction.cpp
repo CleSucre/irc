@@ -12,7 +12,6 @@ int copy_channel(std::string &src, std::vector<Channel> &dest, int _channel_know
 {
 	if (src.empty())
 		return (1);
-	std::cout << "Copying channel: " << src << std::endl; // TODO: Debug message
 	for(std::vector<Channel>::iterator jt = dest.begin(); jt != dest.end(); ++jt)
 	{
 		if (jt->getName() == src)
@@ -36,33 +35,43 @@ int copy_channel(std::string &src, std::vector<Channel> &dest, int _channel_know
 void Bot::list_channels_handler(std::string &packet)
 {
 	CodeMap code_map;
-	size_t pos = packet.find(LIST_START);
-	for (size_t i = 0; i < pos; ++i)
+	std::vector<std::string> channels;
+	std::string token;
+	while(packet.size() )
 	{
-		if (packet[i] == '\r' || packet[i] == '\n')
-		{
-			packet.erase(0, i + 1);
-			pos -= i + 1;
-		}
+		size_t pos = packet.find(LIST_START);
+		if (pos == std::string::npos || pos >= packet.size() || pos <= 0)
+			break ;
+		size_t next_pos = packet.find("\n", pos + 1);
+		if (next_pos == std::string::npos)
+			next_pos = packet.size();
+		token = packet.substr(pos);
+		packet.erase(0, next_pos);
+		parse_packet(token, code_map.getIndex(CHANNEL_START));
+		if (token.empty())
+			break ;
+		channels.push_back(token);
 	}
-	// TODO: Create a loop bc bot get every servers in a single packet
-	if (packet.empty())
+	if (channels.empty())
 	{
-		std::cerr << "Error: Empty packet received for LIST command." << std::endl; // TODO: Debug message
+		std::cerr << "Error: No channels found in LIST command response." << std::endl; // TODO: Debug message
 		return ;
 	}
-	std::cout << "Received LIST command response: " << packet << std::endl; // TODO: Debug message
-	parse_packet(packet, code_map.getIndex(packet));
-	std::cout << "Parsed packet: " << packet << std::endl; // TODO: Debug message
-	if (!copy_channel(packet, _channel, _channel_known))
+	for(std::vector<std::string>::iterator it = channels.begin(); it != channels.end(); ++it)
 	{
-		std::string jointCmd = "JOIN " + packet + "\r\n";
-		if (send(_sock, jointCmd.c_str(), jointCmd.size(), 0) < 0)
+		parse_packet(*it, code_map.getIndex(*it));
+		if (it->empty())
+			continue;
+		if (!copy_channel(*it, _channel, _channel_known))
 		{
-			std::cerr << "Error sending JOIN command for channel: " << packet << std::endl;
-			return ;
+			std::string jointCmd = "JOIN " + *it + "\r\n";
+			if (send(_sock, jointCmd.c_str(), jointCmd.size(), 0) < 0)
+			{
+				std::cerr << "Error sending JOIN command for channel: " << *it << std::endl;
+				return ;
+			}
+			std::cout << "Joining channel: " << *it << std::endl; // TODO: Debug message
+			usleep(50);
 		}
-		std::cout << "Joining channel: " << packet << std::endl; // TODO: Debug message
-		usleep(50);
 	}
 }

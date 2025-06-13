@@ -27,6 +27,7 @@
 #define LIST_END "323"
 #define WHO_START "352"
 #define WHO_END "315"
+#define CHANNEL_START "B322"
 
 class Channel;
 class Client;
