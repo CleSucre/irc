@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./irc:/app
+      - /etc/letsencrypt/live/irc.clesucre.fr:/app/ssl
     ports:
       - "6667:6667"
     tty: true
