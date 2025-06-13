@@ -42,6 +42,21 @@ struct ping
 	static const int _pong_waiting_delay = 5000;
 };
 
+/**
+ * @brief Structure to hold message information
+ * This structure holds the username, channel, and message content.
+ * It is used to store the parsed information from a packet message.
+ * @note
+ * The structure is used in the message_reception function to process incoming messages.
+ * It is designed to be simple and efficient for storing message data.
+ * std::string message is used to store the message content, it is here if we want to add more bot rules later.
+ */
+struct t_message {
+	std::string username;
+	std::string channel;
+	std::string message;
+};
+
 class Bot
 {
 	private:
@@ -86,6 +101,7 @@ class Bot
 };
 
 int copy_users(std::string src_name, std::vector<Channel> &channel, size_t _current_channel);
-
+int	parse_packet(std::string &packet, int split_position);
+t_message split_packet_message(const std::string &packet);
 
 #endif

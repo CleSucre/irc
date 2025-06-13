@@ -26,6 +26,9 @@ class Channel
 		bool getOp() const;
 
 
+		// Debug functions
+		void print_client_in_channel(const Channel &channel);
+
 
 
 };

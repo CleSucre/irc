@@ -30,17 +30,3 @@ class Client
 		void resetLastMessage();
 };
 
-/**
- * @brief Structure to hold message information
- * This structure holds the username, channel, and message content.
- * It is used to store the parsed information from a packet message.
- * @note
- * The structure is used in the message_reception function to process incoming messages.
- * It is designed to be simple and efficient for storing message data.
- * std::string message is used to store the message content, it is here if we want to add more information later.
- */
-struct t_message {
-	std::string username;
-	std::string channel;
-	std::string message;
-};

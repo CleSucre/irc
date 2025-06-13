@@ -18,11 +18,19 @@ INC_DIR = includes
 #========
 # Bot specific variables
 BOT_SRC_DIR = bot_src
-BOT_INC = bot_includes
-BOT_SRC = bot_src/main.cpp bot_src/Bot.cpp bot_src/Client.cpp bot_src/Channel.cpp \
-			bot_src/CodeMap.cpp
 BOT_OBJ_DIR = bot_objs
+BOT_INC = bot_includes
+
+
+BOT_SRC = bot_src/main.cpp bot_src/Handler.cpp bot_src/Antiflood.cpp \
+			bot_src/setup/Bot.cpp bot_src/setup/Client.cpp bot_src/setup/Channel.cpp \
+			bot_src/utils/CodeMap.cpp bot_src/utils/PacketUtils.cpp \
+			bot_src/commands/ListFunction.cpp bot_src/commands/WhoFunction.cpp bot_src/commands/ModeFunction.cpp \
+			
+
 BOT_OBJ = $(BOT_SRC:$(BOT_SRC_DIR)/%.cpp=$(BOT_OBJ_DIR)/%.o)
+BOT_DIRS = $(sort $(dir $(BOT_OBJ)))
+
 #========
 SRCS	= main.cpp \
 			server/Server.cpp server/PacketHandler.cpp \
@@ -65,15 +73,19 @@ $(OBJ_DIR):
 
 #========
 # Bot specific rules
-bot: $(BOT_NAME)
+bot:  $(BOT_NAME)
 
-$(BOT_NAME): $(BOT_OBJ)
+$(BOT_NAME): $(BOT_DIRS)  $(BOT_OBJ)
 	$(CXX) $(BOTCXXFLAGS) $(BOT_SRC) -o $(BOT_NAME) $(LDLIBS)
 
 $(BOT_OBJ_DIR)/%.o: $(BOT_SRC_DIR)/%.cpp | $(BOT_OBJ_DIR)
 	$(CXX) $(BOTCXXFLAGS) -c $< -o $@
+
 $(BOT_OBJ_DIR):
 	mkdir -p $(BOT_OBJ_DIR)
+
+$(BOT_DIRS):
+	mkdir -p $@
 
 cleanbot:
 	$(RMDIR) $(BOT_NAME) $(BOT_OBJ_DIR)
