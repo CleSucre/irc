@@ -28,7 +28,6 @@ int Client::setNick(const std::string &name)
             return false;
         }
     }
-    //TODO: Check if new NickName isn't already taken in the server and in channels
 	if (_server->getClientByNickname(name) != NULL)
 	{
 		std::cerr<< "Client " << _ip << " has entered a NickName already taken : " << name << std::endl;
@@ -75,24 +74,22 @@ bool Client::setUser(const std::string &username)
 		hostname et servername : format d’hôte (lettres, chiffres, points). <= 255 caractères
 		realname : peut contenir espaces, mais pas \r/\n.
 	 */
-	//Check if the client is already registered
 	if (_id.certify == true || !_id.Username.empty()) {
-		sendMessage("462 ERR_ALREADYREGISTERED :Unauthorized command (already registered)");
+		sendMessage(_server->getName() + " " + ERR_ALREADYREGISTRED(_id.Username));
 		std::cerr << "Client " << _id.Username << " is already registered." << std::endl;
 		return (false);
 	}
 	if (!isValidUsername(username)) {
-		sendMessage("ERR_INVALIDPARAMS :Invalid username");
+		sendMessage(_server->getName() + " " + ERR_ERRONEUSNICKNAME(_id.Username, username));
 		std::cerr << "Client " << _id.Username << " has entered a wrong UserName." << std::endl;
 		return (false);
 	}
 	if (_server->getClientByName(username) != NULL)
 	{
 		std::cerr<< "Client " << _fd << " has entered a NickName already taken : " << username << std::endl;
-		sendMessage("ERR_NICKNAMEINUSE :NickName already in use");
+		sendMessage(_server->getName() + " " + ERR_NICKNAMEINUSE(username));
 		return false;
 	}
-	//TODO: Check if new UserName isn't already taken in the server and in channels --- Same function as in Nickname
 	_id.Username = username;
 	std::cout << "Client " << _ip << " is now known as : " << _id.Username << std::endl;
     return (true);

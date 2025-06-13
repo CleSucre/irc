@@ -58,3 +58,34 @@ int Client::getWarningCount() const {
 void Client::resetLastMessage() {
 	_last_message = std::time(NULL);
 }
+
+
+////////////////DEBUG FUNCTIONS////////////////
+
+
+/**
+ * @brief Print all clients in a channel
+ * @param channel The Channel object to print clients from
+ * @note This function prints the details of all clients in the specified channel.
+ * It iterates through the channel's client list and prints each client's nickname, username, ID,
+ * last message time, and warning count.
+ */
+void print_client_in_channel(const Channel &channel)
+{
+	std::cout << "Clients in channel " << channel.getName() << ": " << std::endl;
+	std::vector<Client> &clients = const_cast<Channel&>(channel).getClientsList();
+	if (clients.empty())
+	{
+		std::cout << "No clients in channel." << std::endl;
+		return;
+	}
+	for (size_t i = 0; i < clients.size(); ++i)
+	{
+		std::cout << "Client " << i + 1 << ": " << clients[i].getNick() 
+				  << ", Username: " << clients[i].getUsername() 
+				  << ", ID: " << clients[i].getId() 
+				  << ", Last message: " << clients[i].getLastMessage() 
+				  << ", Warning count: " << clients[i].getWarningCount() 
+				  << std::endl;
+	}
+}

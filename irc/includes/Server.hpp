@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <csignal>
 #include "Client.hpp"
 #include "colors.h"
 

@@ -10,7 +10,7 @@ typedef struct s_map {
 
 class CodeMap {
 	private:
-		static const int _dictionnary_size = 2;
+		static const int _dictionnary_size = 3;
 		t_map _entry[_dictionnary_size];
 	public:
 		CodeMap();
