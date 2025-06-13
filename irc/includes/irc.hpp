@@ -3,6 +3,7 @@
 
 #include <sstream>
 #include <string>
+#include <csignal>
 #include "Server.hpp"
 
 #define PASSWORD_MIN_LENGTH 1
