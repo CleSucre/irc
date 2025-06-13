@@ -7,41 +7,44 @@ PrivmsgCommand::~PrivmsgCommand() {}
 
 /**
  * @brief PRIVMSG target [:message]
+ * 		if target is a channel, replace target by: #channel
+ * 		if target is a user, replace target by: username
  */
-std::string PrivmsgCommand::execute() {
+void PrivmsgCommand::execute() {
 	Server *server = _client.getServer();
 	std::string serverName = server->getName();
 	if (_cmd.size() < 2) {
-		_client.sendMessage(":" + serverName + " " + ERR_NORECIPIENT(_client.getNick()) + "\r\n");
-		return "";
+		_client.sendMessage(":" + serverName + " " + ERR_NORECIPIENT(_client.getNick()));
+		return;
 	}
 	if (_cmd.size() < 3) {
-		_client.sendMessage(":" + serverName + " " + ERR_NOTEXTTOSEND(_client.getNick()) + "\r\n");
-		return "";
+		_client.sendMessage(":" + serverName + " " + ERR_NOTEXTTOSEND(_client.getNick()));
+		return;
 	}
-	const std::string& target = _cmd[1];
-	std::string message = joinFirstN(_cmd, 2);
 
+	const std::string& target = _cmd[1];
+	std::string message = joinFirstN(std::vector<std::string>(_cmd.begin() + 2, _cmd.end()), _cmd.size());
+
+	std::cout << message << std::endl;
 	if (target[0] == '#') {
 		Channel* channel = server->getChannelByName(target);
 		if (!channel) {
-			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), target) + "\r\n");
-			return "";
+			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), target));
+			return;
 		}
 		if (channel->getRole(&_client) < 0) {
-			_client.sendMessage(":" + serverName + " " + ERR_CANNOTSENDTOCHAN(_client.getNick(), target) + "\r\n");
-			return "";
+			_client.sendMessage(":" + serverName + " " + ERR_CANNOTSENDTOCHAN(_client.getNick(), target));
+			return;
 		}
-		channel->broadcast(_client, ":" + _client.getPrefix() + " PRIVMSG " + target + " :" + message + "\r\n");
+		channel->broadcast(_client, ":" + _client.getPrefix() + " PRIVMSG " + target + " :" + message);
 	} else if (target[0] == '&') {
 		Client* recipient = server->getClientByName(target);
 		if (!recipient) {
-			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), target) + "\r\n");
-			return "";
+			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), target));
+			return;
 		}
-		recipient->sendMessage(":" + _client.getPrefix() + " PRIVMSG " + target + " :" + message + "\r\n");
+		recipient->sendMessage(":" + _client.getPrefix() + " PRIVMSG " + target + " :" + message);
 	} else {
-		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), target) + "\r\n");
+		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), target));
 	}
-	return "";
 }

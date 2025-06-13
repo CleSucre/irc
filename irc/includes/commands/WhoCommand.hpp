@@ -8,7 +8,7 @@ class WhoCommand : public CommandBase {
         WhoCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~WhoCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // WHOCOMMAND_HPP

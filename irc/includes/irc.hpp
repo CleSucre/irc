@@ -9,6 +9,7 @@
 #define PASSWORD_MAX_LENGTH 64
 #define PORT_MIN 1024
 #define PORT_MAX 65535
+#define DEFAULT_PASSWORD ""
 
 #define DEFAULT_CERT_FILE "cert.pem"
 #define DEFAULT_KEY_FILE "key.pem"

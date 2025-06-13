@@ -8,19 +8,24 @@ NickCommand::~NickCommand() {}
 /**
  * @brief NICK <nickname>
  */
-std::string NickCommand::execute() {
+void NickCommand::execute() {
     Server *server = _client.getServer();
 	std::string serverName = server->getName();
 
-	if (_cmd.size() < 2) {
-		return ERR_NEEDMOREPARAMS(_client.getPrefix(), "NICK");
+	if (_cmd.size() != 2) {
+		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getPrefix(), "NICK"));
+		return;
 	}
 
 	std::string newNick = this->getParameter(1);
 
-	if (!_client.setNick(newNick)) {
-		return ERR_ERRONEUSNICKNAME(_client.getPrefix(), newNick);
+	int result = _client.setNick(newNick);
+	if (result == 0) {
+		_client.sendMessage(":" + serverName + " " + ERR_ERRONEUSNICKNAME(_client.getPrefix(), newNick));
+		return;
+	} else if (result == -1) {
+		_client.sendMessage(":" + serverName + " " + ERR_NICKNAMEINUSE(newNick));
+		return;
 	}
 	getClient().checkIdentification();
-	return "";
 }

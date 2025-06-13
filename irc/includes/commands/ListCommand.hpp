@@ -8,7 +8,7 @@ class ListCommand : public CommandBase {
         ListCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~ListCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // LISTCOMMAND_HPP

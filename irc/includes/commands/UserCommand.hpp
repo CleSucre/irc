@@ -8,7 +8,7 @@ class UserCommand : public CommandBase {
         UserCommand(Client& client, const std::vector<std::string>& cmd);
         virtual ~UserCommand();
 
-        virtual std::string execute();
+        virtual void execute();
 };
 
 #endif // USERCOMMAND_HPP

@@ -33,6 +33,7 @@ class Client {
         int _fd;
         char* _ip;
         SSL* _ssl;
+        bool _toDelete;
 
     public:
         Client(Server *server, int fd, char *ip, SSL* ssl);
@@ -40,7 +41,7 @@ class Client {
 
         int getFd() const;
         const char *getIp() const;
-        bool setNick(const std::string &);
+        int setNick(const std::string &);
         std::string getNick() const;
         bool setUser(const std::string &);
         std::string getUser() const;
@@ -51,9 +52,11 @@ class Client {
         bool isSSL() const;
         bool listen();
         bool checkIdentification();
-        bool go_command(std::string arg);
 
         void sendMessage(const std::string& message);
+
+        bool shouldBeDeleted() const;
+        void disconnect(const std::string& reason = "Client Quit");
 };
 
 void packetRecieption(Client& client, const std::string& packet);

@@ -10,19 +10,16 @@ UserCommand::~UserCommand() {
 /**
  * @brief USER <username> <hostname> <servername> :<realname>
  */
-std::string UserCommand::execute() {
+
+void UserCommand::execute() {
+	if (_cmd.size() < 5) {
+		_client.sendMessage(":" + getServer()->getName() + " " + ERR_NEEDMOREPARAMS(_client.getPrefix(), "USER"));
+		return;
+	}
 	std::string username = getParameter(4);
 
-	if (username[0] != ':') {
-		std::cerr << "Client " << _client.getIp() << " has entered a wrong UserName." << std::endl;
-		_client.sendMessage(username + "\r\n");
-		return "";
-	} else {
-		username = substr(username, 1, username.length() - 1);
-	}
 	if (!_client.setUser(username)) {
-		return ERR_NEEDMOREPARAMS(_client.getPrefix(), "USER");
+		return;
 	}
 	getClient().checkIdentification();
-	return "";
 }
