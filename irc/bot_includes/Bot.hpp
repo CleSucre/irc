@@ -10,7 +10,6 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <cstring>
-
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <fcntl.h>
@@ -85,13 +84,14 @@ class Bot
 		void handle_global_data();
 		void user_command();
 		void operator_modification(std::string &packet);
+		void interval_verification(time_t &, time_t &, time_t current_time);
 
 		static void handleSignal(int sig);
 		// Stock in channel.hpp for now
 		Channel *getChannelbyName(const std::string &name);
 		Channel *getChannelbyId(size_t id);
 		int copy_users(std::string src_name, std::vector<Channel> &channel, size_t _current_channel);
-
+		int check_flooding(Client *tmp, t_message &msg);
 
 
 

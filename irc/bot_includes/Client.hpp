@@ -2,9 +2,6 @@
 
 #include "Bot.hpp"
 
-#define OPERATOR 1
-#define GUEST 2
-
 class Channel; 
 class Client
 {

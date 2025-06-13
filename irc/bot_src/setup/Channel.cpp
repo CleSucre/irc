@@ -136,12 +136,7 @@ void Channel::addClient(const Client &client) {
 }
 
 
-
-
-
-
 ///////////////////DEBUG FUNCTIONS////////////////////
-
 
 
 /**

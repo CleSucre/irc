@@ -14,6 +14,33 @@ Bot::~Bot()
 		close(_sock);
 }
 
+void Bot::interval_verification(time_t &last_check, time_t &last_check_who, time_t current_time)
+{
+	if (_ping_status._waiting_pong == false && current_time - _ping_status._last_ping >= _ping_status._ping_delay)
+	{
+		std::cout << "Sending PING command to server..." << std::endl; // TODO: Debug message
+		_ping_status._last_ping = current_time;
+		_ping_status.tokens = current_time;
+		std::string pingCmd = "PING :" + _ping_status.tokens + "\r\n";
+		send(_sock, pingCmd.c_str(), pingCmd.size(), 0);
+		_ping_status._waiting_pong = true;
+	}
+	if (last_check == 0 || current_time - last_check >= check_interval)
+	{
+
+		std::cout << "Checking for new channels and users..." << std::endl; // TODO: Debug message
+			send(_sock, "LIST\r\n", 6, 0);
+		last_check = current_time;
+		usleep(100);
+	}
+	if (current_time - last_check_who >= check_who_interval)
+	{
+		std::cout << "Checking for users in channels..." << std::endl; // TODO: Debug message
+		user_command();
+		last_check_who = current_time;
+	}
+}
+
 /**
  * @brief Loop to communicate with the IRC server
  * This function handles sending and receiving messages, checking for new channel,
@@ -39,30 +66,7 @@ void Bot::communication_loop()
 	time_t last_check_who = std::time(NULL);
     while (_end_signal == 0) {
 		time_t current_time = std::time(NULL);
-
-		if (_ping_status._waiting_pong == false && current_time - _ping_status._last_ping >= _ping_status._ping_delay)
-		{
-			std::cout << "Sending PING command to server..." << std::endl; // TODO: Debug message
-			_ping_status._last_ping = current_time;
-			_ping_status.tokens = current_time;
-			std::string pingCmd = "PING :" + _ping_status.tokens + "\r\n";
-			send(_sock, pingCmd.c_str(), pingCmd.size(), 0);
-			_ping_status._waiting_pong = true;
-		}
-		if (_last_check == 0 || current_time - _last_check >= check_interval)
-		{
-
-			std::cout << "Checking for new channels and users..." << std::endl; // TODO: Debug message
-				send(_sock, "LIST\r\n", 6, 0);
-			_last_check = current_time;
-			usleep(100);
-		}
-		if (current_time - last_check_who >= check_who_interval)
-		{
-			std::cout << "Checking for users in channels..." << std::endl; // TODO: Debug message
-			user_command();
-			last_check_who = current_time;
-		}
+		interval_verification(_last_check, last_check_who, current_time);
 		read_fds = master_fds;
 		if (select(max_fd + 1, &read_fds, NULL, NULL, &timeout) < 0) {
 			std::cerr << "Select error\n";

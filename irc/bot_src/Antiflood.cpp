@@ -1,5 +1,32 @@
 #include "Bot.hpp"
 
+int Bot::check_flooding(Client *tmp, t_message &msg)
+{
+	if (tmp->getLastMessage() != 0 && tmp->getLastMessage() - std::time(NULL) > check_interval)
+		{
+			int warning_count = tmp->getWarningCount();
+			tmp->setWarningCount(warning_count + 1);
+			if (warning_count >= 3)
+			{
+				std::cout << "Flood detected from user: " << tmp->getNick() << ", disconnecting..." << std::endl; // TODO: Debug message
+				std::string kickCmd = "KICK " + msg.channel + " " + tmp->getNick() + " :Flood detected\r\n";
+				send(_sock, kickCmd.c_str(), kickCmd.size(), 0);
+				usleep(50);
+				std::string privmsg = "PRIVMSG " + msg.username + " :You have been kicked for flooding\r\n";
+				send(_sock, privmsg.c_str(), privmsg.size(), 0);
+				return (1);
+			}
+			else
+			{
+				std::cout << "Warning sent to user: " << tmp->getNick() << ", warning count: " << warning_count + 1 << std::endl; // TODO: Debug message
+				std::string privmsg = "PRIVMSG " + msg.username + " :You have been warned for flooding\r\n";
+				send(_sock, privmsg.c_str(), privmsg.size(), 0);
+				usleep(50);
+			}
+		}
+	return(0);
+}
+
 /**
  * @brief Handle incoming messages from the IRC server
  * @param packet The packet message received from the IRC server
@@ -48,39 +75,14 @@ void Bot::message_reception(std::string &packet)
 		std::cout << "---------------------------" << std::endl; // TODO: Debug message
 
 		Client *tmp = tmp_channel->getClientbyNick(msg.username);
-		for (std::vector<Client>::iterator it = tmp_channel->getClientsList().begin(); it != tmp_channel->getClientsList().end(); ++it)
-		{
-			std::cout << "Client in channel: " << it->getNick() << ", Username: " << it->getUsername() 
-					  << ", ID: " << it->getId() << std::endl; // TODO: Debug message
-		}
 		if (tmp == NULL)
 		{
 			std::cerr << "Error in getclientbyNick: " << msg.username << " not found in channel " << msg.channel << std::endl; // TODO: Debug message
 			std::cerr << "User " << msg.username << " not found in channel " << msg.channel << std::endl; // TODO: Debug message
 			return;
 		}
-		if (tmp->getLastMessage() != 0 && tmp->getLastMessage() - std::time(NULL) > check_interval)
-		{
-			int warning_count = tmp->getWarningCount();
-			tmp->setWarningCount(warning_count + 1);
-			if (warning_count >= 3)
-			{
-				std::cout << "Flood detected from user: " << tmp->getNick() << ", disconnecting..." << std::endl; // TODO: Debug message
-				std::string kickCmd = "KICK " + msg.channel + " " + tmp->getNick() + " :Flood detected\r\n";
-				send(_sock, kickCmd.c_str(), kickCmd.size(), 0);
-				usleep(50);
-				std::string privmsg = "PRIVMSG " + msg.username + " :You have been kicked for flooding\r\n";
-				send(_sock, privmsg.c_str(), privmsg.size(), 0);
-				return;
-			}
-			else
-			{
-				std::cout << "Warning sent to user: " << tmp->getNick() << ", warning count: " << warning_count + 1 << std::endl; // TODO: Debug message
-				std::string privmsg = "PRIVMSG " + msg.username + " :You have been warned for flooding\r\n";
-				send(_sock, privmsg.c_str(), privmsg.size(), 0);
-				usleep(50);
-			}
-		}
+		if (check_flooding(tmp, msg) == 1)
+			return;
 		tmp->resetLastMessage();
 	}
 	catch (const std::runtime_error &e)

@@ -23,20 +23,21 @@ int copy_channel(std::string &src, std::vector<Channel> &dest, int _channel_know
 	return (0);
 }
 
-
 /**
- * @brief Handle the LIST command response from the IRC server
+ * @brief Get the channels from a packet
  * @param packet The packet received from the IRC server
- * @note This function is called when the bot receives a LIST command response.
- * It parses the packet to extract the channel name and checks if it is already known.
- * If the channel is not known, it update the list of known channels 
- * then sends a JOIN command to the IRC server to join the channel.
+ * @return A vector of channel names extracted from the packet
+ * @note
+ * This function parses the packet from List to extract channel names.
+ * It looks for the LIST_START and CHANNEL_START markers to identify channel entries and which
+ * position to split the packet.
  */
-void Bot::list_channels_handler(std::string &packet)
+std::vector<std::string> get_packet_channels(std::string &packet)
 {
 	CodeMap code_map;
-	std::vector<std::string> channels;
 	std::string token;
+	std::vector<std::string> channels;
+
 	while(packet.size() )
 	{
 		size_t pos = packet.find(LIST_START);
@@ -52,11 +53,31 @@ void Bot::list_channels_handler(std::string &packet)
 			break ;
 		channels.push_back(token);
 	}
-	if (channels.empty())
+	return channels;
+}
+
+
+/**
+ * @brief Handle the LIST command response from the IRC server
+ * @param packet The packet received from the IRC server
+ * @note This function is called when the bot receives a LIST command response.
+ * It parses the packet to extract the channel name and checks if it is already known.
+ * If the channel is not known, it update the list of known channels 
+ * then sends a JOIN command to the IRC server to join the channel.
+ */
+void Bot::list_channels_handler(std::string &packet)
+{
+	CodeMap code_map;
+	std::vector<std::string> channels;
+	std::string token;
+
+	channels = get_packet_channels(packet);
+	if (channels.size() == 0)
 	{
 		std::cerr << "Error: No channels found in LIST command response." << std::endl; // TODO: Debug message
 		return ;
 	}
+	// Join channels that are not already known
 	for(std::vector<std::string>::iterator it = channels.begin(); it != channels.end(); ++it)
 	{
 		parse_packet(*it, code_map.getIndex(*it));
