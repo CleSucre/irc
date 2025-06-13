@@ -37,7 +37,7 @@ void TopicCommand::execute() {
 		_client.sendMessage(":" + serverName + " " + ERR_CHANOPRIVSNEEDED(_client.getNick(), channelName));
 		return;
 	}
-	std::string newTopic = joinFirstN(_cmd, 2);
+	std::string newTopic = joinFirstN(std::vector<std::string>(_cmd.begin() + 2, _cmd.end()), _cmd.size());
 	channel->setTopic(newTopic);
 	channel->broadcast(_client, ":" + _client.getPrefix() + " TOPIC " + channelName + " :" + newTopic);
 }

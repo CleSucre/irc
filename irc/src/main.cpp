@@ -28,6 +28,15 @@ std::string parsePassword(const std::string& password) {
     return password;
 }
 
+Server* g_server = NULL;
+
+void handleSignal(int signal) {
+    if (signal == SIGINT && g_server) {
+        g_server->stop();
+        std::cerr << " sign recive" << std::endl;
+    }
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         std::cerr << RED << "Usage: " << argv[0] << " <port> [password] [cert.pem] [key.pem]" << RESET << std::endl;
@@ -52,6 +61,8 @@ int main(int argc, char* argv[]) {
     std::string keyFile = argc > 4 ? argv[4] : DEFAULT_KEY_FILE;
 
     Server server("PIPI HOUSE", port, password, certFile, keyFile);
+    g_server = &server;
+    std::signal(SIGINT, handleSignal);
     server.start();
     return 0;
 }
