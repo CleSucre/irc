@@ -70,6 +70,8 @@ void packetRecieption(Client& client, const std::string& packet) {
 	if (cmd) {
 		cmd->pre_execute();
 		delete cmd;
+	} else {
+		std::cerr << "Unknown command received from client " << client.getIp() << ": " << packet << std::endl;
+		client.sendMessage(":" + client.getServer()->getName() + " " + ERR_UNKNOWNCOMMAND(client.getNick(), packet));
 	}
-	//TODO: Handle messages? oui
 }
