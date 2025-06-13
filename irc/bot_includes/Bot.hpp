@@ -67,8 +67,8 @@ class Bot
 		size_t _current_channel;
 		size_t _channel_known;
 		std::vector<Channel> _channel;
-		time_t _last_check;
-		static const int	check_interval = 5;
+		static const int	check_interval = 6;
+		static const int	check_who_interval = 3;
 		static int	_end_signal;
 		ping _ping_status;
 

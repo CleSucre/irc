@@ -3,7 +3,7 @@
 int Bot::_end_signal = 0;
 
 
-Bot::Bot() : _sock(-1), _nick("bot"), _current_channel(0), _channel_known(0), _last_check(std::time(NULL)) {
+Bot::Bot() : _sock(-1), _nick("bot"), _current_channel(0), _channel_known(0) {
 	_ping_status._last_ping = std::time(NULL);
 	_ping_status._waiting_pong = false;
 }
@@ -35,7 +35,8 @@ void Bot::communication_loop()
 	timeout.tv_sec = 1;
 	timeout.tv_usec = 0;
 	int max_fd = _sock;
-	int interval = 0;
+	time_t _last_check = std::time(NULL);
+	time_t last_check_who = std::time(NULL);
     while (_end_signal == 0) {
 		time_t current_time = std::time(NULL);
 
@@ -52,17 +53,15 @@ void Bot::communication_loop()
 		{
 
 			std::cout << "Checking for new channels and users..." << std::endl; // TODO: Debug message
-			if (interval == 0)
-			{
 				send(_sock, "LIST\r\n", 6, 0);
-				interval = 1;
-			}
-			else 
-			{
-				user_command();
-				interval = 0;
-			}
 			_last_check = current_time;
+			usleep(100);
+		}
+		if (current_time - last_check_who >= check_who_interval)
+		{
+			std::cout << "Checking for users in channels..." << std::endl; // TODO: Debug message
+			user_command();
+			last_check_who = current_time;
 		}
 		read_fds = master_fds;
 		if (select(max_fd + 1, &read_fds, NULL, NULL, &timeout) < 0) {
