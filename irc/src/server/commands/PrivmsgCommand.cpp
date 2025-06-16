@@ -22,7 +22,7 @@ void PrivmsgCommand::execute() {
 		return;
 	}
 
-	const std::string& target = _cmd[1];
+	const std::string& target = getParameter(1);
 	std::string message = joinFirstN(std::vector<std::string>(_cmd.begin() + 2, _cmd.end()), _cmd.size());
 
 	if (target[0] == '#') {
