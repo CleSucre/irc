@@ -4,11 +4,13 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - /etc/letsencrypt/live/irc.clesucre.fr:/app/ssl
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     ports:
       - "${IRC_PORT}:6667"
     environment:
       - IRC_PASSWORD=${IRC_PASSWORD}
       - ENABLE_SSL=${ENABLE_SSL}
+      - CERT_FILE=/etc/letsencrypt/live/${DOMAIN}/fullchain.pem
+      - KEY_FILE=/etc/letsencrypt/live/${DOMAIN}/privkey.pem
     tty: true
     working_dir: /app
