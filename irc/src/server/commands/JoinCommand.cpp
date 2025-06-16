@@ -9,23 +9,23 @@ JoinCommand::~JoinCommand() {}
 std::string JoinCommand::generateJoinResponse(Client* client, Channel* channel) {
 	std::ostringstream response;
 
-	response << ":" << client->getNick() << "!user@host JOIN :" << channel->getName();
+	response << ":" << client->getNick() << "!user@host JOIN :" << channel->getName() << "\r\n";
 
 	std::string topic = channel->getTopic();
 	std::string serverName = client->getServer()->getName();
 	if (!topic.empty())
 		response << ":" << serverName << " 332 " << client->getNick() << " " << channel->getName()
-		         << " :" << topic;
+		         << " :" << topic << "\r\n";
 	else
 		response << ":" << serverName << " 331 " << client->getNick() << " " << channel->getName()
-		         << " :No topic is set";
+		         << " :No topic is set\r\n";
 
 	response << ":" << serverName << " 333 " << client->getNick() << " "
-	         << channel->getName() << " " << client->getNick() << " " << generateTimestamp();
+	         << channel->getName() << " " << client->getNick() << " " << generateTimestamp() << "\r\n";
 
 	std::string names = channel->getAllNicks();
 	response << ":" << serverName << " 353 " << client->getNick() << " = "
-	         << channel->getName() << " :" << names;
+	         << channel->getName() << " :" << names << "\r\n";
 
 	response << ":" << serverName << " 366 " << client->getNick() << " "
 	         << channel->getName() << " :End of /NAMES list.";
