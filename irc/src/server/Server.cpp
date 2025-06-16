@@ -59,7 +59,7 @@ bool Server::setupSSLContext(const char* certFile, const char* keyFile) {
         return false;
     }
 
-    if (SSL_CTX_use_certificate_file(_ssl_ctx, certFile, SSL_FILETYPE_PEM) <= 0) {
+    if (SSL_CTX_use_certificate_chain_file(_ssl_ctx, certFile) <= 0) {
         ERR_print_errors_fp(stderr);
         return false;
     }
