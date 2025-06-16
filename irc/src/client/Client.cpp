@@ -139,7 +139,7 @@ void Client::sendMessage(const std::string& message) {
 	} else {
 		send(_fd, formattedMessage.c_str(), formattedMessage.length(), 0);
 	}
-	std::cout << getUser() << "(" << getNick() << ") " << "Sent: '" << formattedMessage  << "'" << std::endl;
+	std::cout << getUser() << "(" << getNick() << ") " << "Recived: " << formattedMessage << std::endl;
 }
 
 /**
