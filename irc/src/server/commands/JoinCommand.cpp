@@ -24,6 +24,8 @@ std::string JoinCommand::generateJoinResponse(Client* client, Channel* channel) 
 	         << channel->getName() << " " << client->getNick() << " " << generateTimestamp() << "\r\n";
 
 	std::string names = channel->getAllNicks();
+	if (!names.empty() && names[names.size() - 1] == ' ')
+		names.erase(names.size() - 1);
 	response << ":" << serverName << " 353 " << client->getNick() << " = "
 	         << channel->getName() << " :" << names << "\r\n";
 
