@@ -3,8 +3,7 @@
 Server::Server(std::string name, int port, const std::string& password, const std::string& certFile, const std::string& keyFile)
     : _name(name), _port(port), _password(password), _ssl_ctx(NULL), _server_fd(-1), _running(false) {
 
-    if (!setupSSLContext(certFile.c_str(), keyFile.c_str())) {
-        std::cerr << RED << "Failed to setup SSL context" << RESET << std::endl;
+    if (certFile.empty() || keyFile.empty() || !setupSSLContext(certFile.c_str(), keyFile.c_str())) {
         _ssl_ctx = NULL;
     }
 }

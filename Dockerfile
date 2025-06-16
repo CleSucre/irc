@@ -1,14 +1,16 @@
-FROM ubuntu:latest
+FROM ubuntu:24.04
 
 LABEL authors="CleSucre"
 
 RUN apt-get update && apt-get install libssl-dev vim g++ valgrind make -y
 
 COPY ./irc /app
-COPY ./start.sh /app
+COPY ./start.sh /app/start.sh
 
 WORKDIR /app
 
-RUN chmod +x start.sh
+RUN make
 
-ENTRYPOINT ["./start.sh"]
+RUN chmod +x /app/start.sh
+
+ENTRYPOINT ["/app/start.sh"]
