@@ -277,8 +277,8 @@ bool Channel::removeUser(Client* client) {
 	for (std::vector<std::pair<Client*, int> >::iterator it = _user.begin(); it != _user.end(); ++it) {
 		if (it->first == client){
 			_user.erase(it);
-		} else {
-			broadcast(*it->first, client->getPrefix() + " PART " + _name);
+			broadcast(*client, client->getPrefix() + " PART " + _name);
+			return;
 		}
 	}
 	return false;
