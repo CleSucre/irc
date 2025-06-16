@@ -35,7 +35,7 @@ void PrivmsgCommand::execute() {
 			_client.sendMessage(":" + serverName + " " + ERR_CANNOTSENDTOCHAN(_client.getNick(), target));
 			return ;
 		}
-		channel->broadcast(_client, _client.getPrefix() + " PRIVMSG " + target + message);
+		channel->broadcast(_client, _client.getPrefix() + " PRIVMSG " + target + " " + message);
 	}
 	else {
 		Client* recipient = server->getClientByName(target);
@@ -43,7 +43,7 @@ void PrivmsgCommand::execute() {
 			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), target));
 			return ;
 		}
-		recipient->sendMessage(_client.getPrefix() + " PRIVMSG " + target + message);
+		recipient->sendMessage(_client.getPrefix() + " PRIVMSG " + target + " " + message);
 	}
 	return ;
 }
