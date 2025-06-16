@@ -278,7 +278,7 @@ bool Channel::removeUser(Client* client) {
 		if (it->first == client){
 			_user.erase(it);
 			broadcast(*client, client->getPrefix() + " PART " + _name);
-			return;
+			return true;
 		}
 	}
 	return false;
