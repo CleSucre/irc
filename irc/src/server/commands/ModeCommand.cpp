@@ -130,7 +130,7 @@ void ModeCommand::execute() {
 		}
 	}
 
-	std::string msg = ":" + _client.getPrefix() + " MODE " + target + " " + newFlags;
+	std::string msg = _client.getPrefix() + " MODE " + target + " " + newFlags;
 	for (size_t i = 0; i < extraArgs.size(); ++i)
 		msg += " " + extraArgs[i];
 

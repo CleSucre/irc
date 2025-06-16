@@ -39,5 +39,5 @@ void TopicCommand::execute() {
 	}
 	std::string newTopic = joinFirstN(std::vector<std::string>(_cmd.begin() + 2, _cmd.end()), _cmd.size());
 	channel->setTopic(newTopic);
-	channel->broadcast(_client, ":" + _client.getPrefix() + " TOPIC " + channelName + " :" + newTopic);
+	channel->broadcast(_client, _client.getPrefix() + " TOPIC " + channelName + " :" + newTopic);
 }

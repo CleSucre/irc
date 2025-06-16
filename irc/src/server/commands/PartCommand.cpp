@@ -32,7 +32,7 @@ void PartCommand::execute() {
 			continue;
 		}
 
-		std::string msg = ":" + _client.getPrefix() + " PART " + channels[i];
+		std::string msg = _client.getPrefix() + " PART " + channels[i];
 		if (!reason.empty())
 			msg += " :" + reason;
 
