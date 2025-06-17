@@ -4,8 +4,13 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./irc:/app
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     ports:
-      - "6667:6667"
+      - "${IRC_PORT}:6667"
+    environment:
+      - IRC_PASSWORD=${IRC_PASSWORD}
+      - ENABLE_SSL=${ENABLE_SSL}
+      - CERT_FILE=/etc/letsencrypt/live/${DOMAIN}/fullchain.pem
+      - KEY_FILE=/etc/letsencrypt/live/${DOMAIN}/privkey.pem
     tty: true
     working_dir: /app

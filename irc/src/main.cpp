@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::string certFile = argc > 3 ? argv[3] : DEFAULT_CERT_FILE;
-    std::string keyFile = argc > 4 ? argv[4] : DEFAULT_KEY_FILE;
+    std::string certFile = argc > 3 ? argv[3] : "";
+    std::string keyFile = argc > 4 ? argv[4] : "";
 
     Server server("IRC_SERV", port, password, certFile, keyFile);
     g_server = &server;

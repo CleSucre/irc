@@ -17,7 +17,7 @@ void PartCommand::execute() {
 		return;
 	}
 
-	std::vector<std::string> channels = split(_cmd[1], ',');
+	std::vector<std::string> channels = split(getParameter(1), ',');
 	std::string reason = (_cmd.size() >= 3) ? joinFirstN(_cmd, 2) : " ";
 
 	for (size_t i = 0; i < channels.size(); ++i) {
@@ -32,7 +32,7 @@ void PartCommand::execute() {
 			continue;
 		}
 
-		std::string msg = ":" + _client.getPrefix() + " PART " + channels[i];
+		std::string msg = _client.getPrefix() + " PART " + channels[i];
 		if (!reason.empty())
 			msg += " :" + reason;
 

@@ -3,8 +3,7 @@
 Server::Server(std::string name, int port, const std::string& password, const std::string& certFile, const std::string& keyFile)
     : _name(name), _port(port), _password(password), _ssl_ctx(NULL), _server_fd(-1), _running(false) {
 
-    if (!setupSSLContext(certFile.c_str(), keyFile.c_str())) {
-        std::cerr << RED << "Failed to setup SSL context" << RESET << std::endl;
+    if (certFile.empty() || keyFile.empty() || !setupSSLContext(certFile.c_str(), keyFile.c_str())) {
         _ssl_ctx = NULL;
     }
 }
@@ -60,7 +59,7 @@ bool Server::setupSSLContext(const char* certFile, const char* keyFile) {
         return false;
     }
 
-    if (SSL_CTX_use_certificate_file(_ssl_ctx, certFile, SSL_FILETYPE_PEM) <= 0) {
+    if (SSL_CTX_use_certificate_chain_file(_ssl_ctx, certFile) <= 0) {
         ERR_print_errors_fp(stderr);
         return false;
     }
@@ -166,7 +165,7 @@ std::vector<Client*> Server::getAllClients() {
  */
 Client* Server::getClientByName(const std::string& name) {
     for (size_t i = 0; i < _clients.size(); ++i) {
-        if (_clients[i]->getUser() == name) {
+        if (_clients[i]->getNick() == name) {
             return _clients[i];
         }
     }

@@ -22,28 +22,28 @@ void PrivmsgCommand::execute() {
 		return;
 	}
 
-	const std::string& target = _cmd[1];
+	const std::string& target = getParameter(1);
 	std::string message = joinFirstN(std::vector<std::string>(_cmd.begin() + 2, _cmd.end()), _cmd.size());
 
 	if (target[0] == '#') {
 		Channel* channel = server->getChannelByName(target);
 		if (!channel) {
-			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), target) + "\r\n");
+			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), target));
 			return ;
 		}
 		if (channel->getRole(&_client) < 0) {
-			_client.sendMessage(":" + serverName + " " + ERR_CANNOTSENDTOCHAN(_client.getNick(), target) + "\r\n");
+			_client.sendMessage(":" + serverName + " " + ERR_CANNOTSENDTOCHAN(_client.getNick(), target));
 			return ;
 		}
-		channel->broadcast(_client, ":" + _client.getPrefix() + " PRIVMSG " + target + " :" + message + "\r\n");
+		channel->broadcast(_client, _client.getPrefix() + " PRIVMSG " + target + " " + message);
 	}
 	else {
 		Client* recipient = server->getClientByName(target);
 		if (!recipient) {
-			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), target) + "\r\n");
+			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), target));
 			return ;
 		}
-		recipient->sendMessage(":" + _client.getPrefix() + " PRIVMSG " + target + " :" + message + "\r\n");
+		recipient->sendMessage(_client.getPrefix() + " PRIVMSG " + target + " " + message);
 	}
 	return ;
 }
