@@ -16,7 +16,7 @@ void ModeCommand::execute() {
 		return;
 	}
 
-	const std::string& target = _cmd[1];
+	const std::string& target = getParameter(1);
 	if (target[0] != '#') {
 		_client.sendMessage(":" + serverName + " " + ERR_UNKNOWNCOMMAND(_client.getNick(), "MODE"));
 		return;
@@ -34,7 +34,7 @@ void ModeCommand::execute() {
 		return;
 	}
 
-	if (_cmd.size() < 3 || _cmd[2].empty() || (_cmd[2][0] != '+' && _cmd[2][0] != '-')) {
+	if (_cmd.size() < 3 || getParameter(2).empty() || (getParameter(2)[0] != '+' && getParameter(2)[0] != '-')) {
 		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "MODE"));
 		return;
 	}
@@ -44,7 +44,7 @@ void ModeCommand::execute() {
 		return;
 	}
 
-	std::string flags = _cmd[2];
+	std::string flags = getParameter(2);
 	bool adding = true;
 	size_t argIndex = 3;
 
@@ -76,8 +76,8 @@ void ModeCommand::execute() {
 							return;
 						}
 						channel->setMode(mK, true);
-						channel->setPassword(_cmd[argIndex]);
-						extraArgs.push_back(_cmd[argIndex++]);
+						channel->setPassword(getParameter(argIndex));
+						extraArgs.push_back(getParameter(argIndex++));
 						newFlags += 'k';
 					} else {
 						channel->setMode(mK, false);
@@ -92,8 +92,8 @@ void ModeCommand::execute() {
 							return;
 						}
 						channel->setMode(mL, true);
-						channel->setModeL(std::atoi(_cmd[argIndex].c_str()));
-						extraArgs.push_back(_cmd[argIndex++]);
+						channel->setModeL(std::atoi(getParameter(argIndex).c_str()));
+						extraArgs.push_back(getParameter(argIndex++));
 						newFlags += 'l';
 					} else {
 						channel->setMode(mL, false);
@@ -106,7 +106,7 @@ void ModeCommand::execute() {
 						return;
 					}
 
-					std::string targetNick = _cmd[argIndex++];
+					std::string targetNick = getParameter(argIndex++);
 					Client* targetClient = server->getClientByName(targetNick);
 
 					if (!targetClient || channel->getRole(targetClient) < user) {

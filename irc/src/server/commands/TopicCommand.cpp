@@ -15,7 +15,7 @@ void TopicCommand::execute() {
 		_client.sendMessage(":" + serverName + " " + ERR_NEEDMOREPARAMS(_client.getNick(), "TOPIC"));
 		return;
 	}
-	const std::string& channelName = _cmd[1];
+	const std::string& channelName = getParameter(1);
 	Channel* channel = server->getChannelByName(channelName);
 	if (!channel) {
 		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channelName));
