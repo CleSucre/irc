@@ -12,7 +12,4 @@
 #define PORT_MAX 65535
 #define DEFAULT_PASSWORD ""
 
-#define DEFAULT_CERT_FILE "cert.pem"
-#define DEFAULT_KEY_FILE "key.pem"
-
 #endif // IRC_HPP

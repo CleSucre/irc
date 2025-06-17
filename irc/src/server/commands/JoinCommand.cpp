@@ -6,11 +6,10 @@ JoinCommand::JoinCommand(Client& client, const std::vector<std::string>& cmd)
 
 JoinCommand::~JoinCommand() {}
 
-
 std::string JoinCommand::generateJoinResponse(Client* client, Channel* channel) {
 	std::ostringstream response;
 
-	response << ":" << client->getNick() << "!user@host JOIN :" << channel->getName() << "\r\n";
+	response << ":" << client->getPrefix() << " JOIN :" << channel->getName() << "\r\n";
 
 	std::string topic = channel->getTopic();
 	std::string serverName = client->getServer()->getName();
@@ -25,14 +24,17 @@ std::string JoinCommand::generateJoinResponse(Client* client, Channel* channel) 
 	         << channel->getName() << " " << client->getNick() << " " << generateTimestamp() << "\r\n";
 
 	std::string names = channel->getAllNicks();
+	if (!names.empty())
+		names.erase(names.size() - 1);
 	response << ":" << serverName << " 353 " << client->getNick() << " = "
 	         << channel->getName() << " :" << names << "\r\n";
 
 	response << ":" << serverName << " 366 " << client->getNick() << " "
-	         << channel->getName() << " :End of /NAMES list.\r\n";
+	         << channel->getName() << " :End of /NAMES list.";
 
 	return response.str();
 }
+
 Channel* JoinCommand::processChannel(const std::string& channelName, const std::string& key) {
 	if (channelName.empty()) {
 		_client.sendMessage(":" + _client.getServer()->getName() + " " + ERR_NOSUCHCHANNEL(_client.getNick(), channelName));
@@ -103,7 +105,7 @@ void JoinCommand::execute() {
 		if (!channel)
 			continue;
 
-		std::string joinMsg = ":" + _client.getPrefix() + " JOIN :" + chanName;
+		std::string joinMsg = _client.getPrefix() + " JOIN :" + chanName;
 		channel->broadcast(_client, joinMsg);
 		_client.sendMessage(generateJoinResponse(&_client, channel));
 	}
