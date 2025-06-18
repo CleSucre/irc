@@ -43,5 +43,3 @@ void PartCommand::execute() {
 			server->removeChannel(channel);
 	}
 }
-// si le derniere admin quitte le channel et qu'il reste des users, alors la le channel est bloquer
-// est ce qu'il faut mettre le le user le plus ancien en tant qu'admin ?

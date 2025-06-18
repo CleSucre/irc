@@ -79,6 +79,9 @@ std::string Channel::getModeString(bool isOperator) const {
 		}
 	}
 
+	if (modeStr[0] == '+' && !modeStr[1])
+		return "";
+	
 	return modeStr + params;
 }
 
@@ -223,7 +226,6 @@ int Channel::kickUser(Client* client, Client* toKick) {
 	if (itToKick != _user.end()) {
 		if (itClient != _user.end()) {
 			if (itClient->second == admin) {
-				_user.erase(itToKick);
 				return 0;
 			} else {
 				return 1;
@@ -277,7 +279,6 @@ bool Channel::removeUser(Client* client) {
 	for (std::vector<std::pair<Client*, int> >::iterator it = _user.begin(); it != _user.end(); ++it) {
 		if (it->first == client){
 			_user.erase(it);
-			broadcast(*client, client->getPrefix() + " PART " + _name);
 			return true;
 		}
 	}

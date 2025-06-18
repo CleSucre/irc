@@ -32,8 +32,10 @@ void KickCommand::execute() {
 	switch (result) {
 		case 0: {
 			std::string msg = _client.getPrefix() + " KICK " + channel->getName() + " " + toKick->getNick();
-			if (_cmd.size() > 3) msg += " :" + joinFirstN(_cmd, 3);
-			channel->broadcast(_client, msg + "\r\n");
+			if (_cmd.size() > 3)
+				msg += " :" + getParameter(3);
+			channel->broadcast(_client, msg);
+			channel->removeUser(&_client);
 			break;
 		}
 		case 1:

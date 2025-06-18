@@ -41,7 +41,7 @@ Channel* JoinCommand::processChannel(const std::string& channelName, const std::
 		return NULL;
 	}
 
-	if (channelName[0] != '#' && channelName[0] != '&') {
+	if (channelName[0] != '#') {
 		_client.sendMessage(":" + _client.getServer()->getName() + " " + ERR_UNKNOWNCOMMAND(_client.getNick(), "JOIN"));
 		return NULL;
 	}
@@ -108,5 +108,7 @@ void JoinCommand::execute() {
 		std::string joinMsg = _client.getPrefix() + " JOIN :" + chanName;
 		channel->broadcast(_client, joinMsg);
 		_client.sendMessage(generateJoinResponse(&_client, channel));
+		return;
 	}
+	_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), getParameter(1)));
 }

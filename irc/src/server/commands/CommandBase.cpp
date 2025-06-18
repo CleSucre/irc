@@ -25,7 +25,9 @@ std::string CommandBase::getParameter(size_t index) const {
 
     if (!param.empty() && param[0] == ':') {
         for (size_t i = index + 1; i < _cmd.size(); ++i) {
-            param += " " + _cmd[i];
+            if (i != index)
+                param += " ";
+            param += _cmd[i];
         }
         return substr(param, 1, param.size() - 1);
     }

@@ -411,6 +411,7 @@ void Server::removeClientInChannel(Client *client) {
 	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ) {
 		if (*it) {
 			(*it)->removeUser(client);
+			(*it)->broadcast(*client, client->getPrefix() + " PART " + _name);
 			if ((*it)->isEmpty()) {
 				delete *it;
 				it = _channels.erase(it);
