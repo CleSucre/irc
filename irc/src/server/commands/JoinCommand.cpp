@@ -108,7 +108,5 @@ void JoinCommand::execute() {
 		std::string joinMsg = _client.getPrefix() + " JOIN :" + chanName;
 		channel->broadcast(_client, joinMsg);
 		_client.sendMessage(generateJoinResponse(&_client, channel));
-		return;
 	}
-	_client.sendMessage(":" + serverName + " " + ERR_NOSUCHCHANNEL(_client.getNick(), getParameter(1)));
 }

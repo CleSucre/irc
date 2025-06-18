@@ -35,7 +35,8 @@ void KickCommand::execute() {
 			if (_cmd.size() > 3)
 				msg += " :" + getParameter(3);
 			channel->broadcast(_client, msg);
-			channel->removeUser(&_client);
+			_client.sendMessage(msg);
+			channel->removeUser(toKick);
 			break;
 		}
 		case 1:
