@@ -94,8 +94,11 @@ void Bot::server_authentification()
     std::cout << "USER command sent" << std::endl; // Log message
     send(_sock, userCmd.c_str(), userCmd.size(), 0);
     usleep(100);
-	std::cout << "PASS command sent" << std::endl; // Log message
-	send(_sock, passCmd.c_str(), passCmd.size(), 0);
+	if (passCmd.size() > 7)
+	{
+		std::cout << "PASS command sent" << std::endl; // Log message
+		send(_sock, passCmd.c_str(), passCmd.size(), 0);
+	}
     std::cout << "Authentication complete, entering communication loop..." << std::endl; // Log message
     communication_loop();
 }

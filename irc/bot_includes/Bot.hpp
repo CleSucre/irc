@@ -40,8 +40,8 @@ struct ping
 	bool _waiting_pong;
 	std::string tokens;
 	/// TODO: Minimize the PING delay, PONG isn't implemented yet
-	static const int _ping_delay = 10000;
-	static const int _pong_waiting_delay = 5000;
+	static const int _ping_delay = 10;
+	static const int _pong_waiting_delay = 5;
 };
 
 /**

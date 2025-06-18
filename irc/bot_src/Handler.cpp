@@ -41,7 +41,7 @@ void Bot::handle_global_data()
 		message_reception(packet);
 	else if (packet.find("MODE") != std::string::npos)
 		operator_modification(packet);
-	else if (_ping_status._waiting_pong && packet.find("PONG :" + _ping_status.tokens) != std::string::npos)
+	else if (_ping_status._waiting_pong && packet.find("PONG") != std::string::npos)
 		_ping_status._waiting_pong = false;
 	else if (packet.find("433") != std::string::npos)
 		_end_signal = 1;
