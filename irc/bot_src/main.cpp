@@ -10,7 +10,7 @@
 int main(int argc, char* argv[]) {
 
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <server> [port] [nick]\n";
+        std::cerr << "Usage: " << argv[0] << " <server> [port] [pass] [nick] [username]" << std::endl;
         return 1;
     }
     Bot bot;

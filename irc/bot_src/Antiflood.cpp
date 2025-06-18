@@ -43,7 +43,6 @@ int Bot::check_flooding(Client *tmp, t_message &msg)
 void Bot::message_reception(std::string &packet)
 {
 	t_message msg = split_packet_message(packet);
-	Channel *debug_channel_list = getChannelbyId(_current_channel);
 
 	try{
 		_current_channel = find_channel_index(_channel, msg.channel);
