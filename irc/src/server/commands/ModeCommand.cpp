@@ -135,4 +135,5 @@ void ModeCommand::execute() {
 		msg += " " + extraArgs[i];
 
 	channel->broadcast(_client, msg);
+	_client.sendMessage(msg);
 }

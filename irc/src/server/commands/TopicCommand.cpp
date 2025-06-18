@@ -37,7 +37,8 @@ void TopicCommand::execute() {
 		_client.sendMessage(":" + serverName + " " + ERR_CHANOPRIVSNEEDED(_client.getNick(), channelName));
 		return;
 	}
-	std::string newTopic = joinFirstN(std::vector<std::string>(_cmd.begin() + 2, _cmd.end()), _cmd.size());
+	std::string newTopic = getParameter(2);
 	channel->setTopic(newTopic);
 	channel->broadcast(_client, _client.getPrefix() + " TOPIC " + channelName + " :" + newTopic);
+	_client.sendMessage(":" + serverName + " " + RPL_TOPIC(_client.getNick(), channelName, newTopic));
 }
