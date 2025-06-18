@@ -139,7 +139,7 @@ void Client::sendMessage(const std::string& message) {
 	} else {
 		send(_fd, formattedMessage.c_str(), formattedMessage.length(), 0);
 	}
-	std::cout << "Packet sent to client  " << getPrefix() << ": " << formattedMessage << std::endl;
+	std::cout << "Packet sent to client " << getPrefix() << ": " << formattedMessage << std::endl;
 }
 
 /**

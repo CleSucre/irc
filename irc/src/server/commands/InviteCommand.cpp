@@ -26,7 +26,7 @@ void InviteCommand::execute() {
 		return;
 	}
 
-	Client* toInvite = server->getClientByName(toInviteNick);
+	Client* toInvite = server->getClientByNickname(toInviteNick);
 	if (!toInvite) {
 		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), toInviteNick));
 		return;

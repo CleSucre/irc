@@ -165,7 +165,7 @@ std::vector<Client*> Server::getAllClients() {
  */
 Client* Server::getClientByName(const std::string& name) {
     for (size_t i = 0; i < _clients.size(); ++i) {
-        if (_clients[i]->getNick() == name) {
+        if (_clients[i]->getUser() == name) {
             return _clients[i];
         }
     }

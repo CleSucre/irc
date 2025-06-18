@@ -107,7 +107,7 @@ void ModeCommand::execute() {
 					}
 
 					std::string targetNick = getParameter(argIndex++);
-					Client* targetClient = server->getClientByName(targetNick);
+					Client* targetClient = server->getClientByNickname(targetNick);
 
 					if (!targetClient || channel->getRole(targetClient) < user) {
 						_client.sendMessage(":" + serverName + " " + ERR_USERNOTINCHANNEL(_client.getNick(), targetNick, target));
@@ -135,4 +135,5 @@ void ModeCommand::execute() {
 		msg += " " + extraArgs[i];
 
 	channel->broadcast(_client, msg);
+	_client.sendMessage(msg);
 }

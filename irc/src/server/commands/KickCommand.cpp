@@ -22,7 +22,8 @@ void KickCommand::execute() {
 		return;
 	}
 
-	Client* toKick = server->getClientByNickname(_cmd[2]);
+
+	Client* toKick = server->getClientByNickname(getParameter(2));
 	if (!toKick) {
 		_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), getParameter(1)));
 		return;

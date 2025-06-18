@@ -9,7 +9,7 @@ JoinCommand::~JoinCommand() {}
 std::string JoinCommand::generateJoinResponse(Client* client, Channel* channel) {
 	std::ostringstream response;
 
-	response << ":" << client->getPrefix() << " JOIN :" << channel->getName() << "\r\n";
+	response << client->getPrefix() << " JOIN :" << channel->getName() << "\r\n";
 
 	std::string topic = channel->getTopic();
 	std::string serverName = client->getServer()->getName();

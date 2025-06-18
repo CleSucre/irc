@@ -38,7 +38,7 @@ void PrivmsgCommand::execute() {
 		channel->broadcast(_client, _client.getPrefix() + " PRIVMSG " + target + " " + message);
 	}
 	else {
-		Client* recipient = server->getClientByName(target);
+		Client* recipient = server->getClientByNickname(target);
 		if (!recipient) {
 			_client.sendMessage(":" + serverName + " " + ERR_NOSUCHNICK(_client.getNick(), target));
 			return ;
