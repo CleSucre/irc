@@ -18,7 +18,7 @@ int copy_channel(std::string &src, std::vector<Channel> &dest, int _channel_know
 			return (1);
 	}
 	dest.push_back(Channel(src, dest.size()));
-	std::cout << "New channel added: " << src << " with ID: " << dest.size() << "\n"; // TODO: Debug message
+	std::cout << "New channel added: " << src << "\n"; // TODO: Log message
 	_channel_known++;
 	return (0);
 }
@@ -69,16 +69,10 @@ void Bot::list_channels_handler(std::string &packet)
 {
 	CodeMap code_map;
 	std::vector<std::string> channels;
-	std::string token; //TODO: remove this variable if not used
 
 	channels = get_packet_channels(packet);
 	if (channels.size() == 0)
-	{
-		std::cerr << "Error: No channels found in LIST command response." << std::endl; // TODO: Debug message
 		return ;
-	}
-	std::cout << "----LIST CHANNEL HANDLER -----" << std::endl; // TODO: Debug message
-	// Join channels that are not already known
 	for(std::vector<std::string>::iterator it = channels.begin(); it != channels.end(); ++it)
 	{
 		parse_packet(*it, code_map.getIndex(*it));
@@ -92,7 +86,7 @@ void Bot::list_channels_handler(std::string &packet)
 				std::cerr << "Error sending JOIN command for channel: " << *it << std::endl;
 				return ;
 			}
-			std::cout << "Joining channel: " << *it << std::endl; // TODO: Debug message
+			std::cout << "Joining channel: " << *it << std::endl; // TODO: Log message
 			usleep(50);
 		}
 	}

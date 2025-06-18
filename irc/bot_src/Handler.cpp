@@ -32,7 +32,6 @@ void Bot::handle_global_data()
 		return;
 	}
 	buffer[len] = '\0';
-	std::cout << "Received data: " << buffer << "total length: " << len << std::endl; // TODO: Debug message>
 	std::string packet(buffer);
 	if (packet.find(LIST_START) != std::string::npos)
 		list_channels_handler(packet);

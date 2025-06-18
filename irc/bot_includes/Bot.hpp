@@ -94,13 +94,6 @@ class Bot
 		Channel *getChannelbyId(size_t id);
 		int copy_users(std::string src_name, std::vector<Channel> &channel, size_t _current_channel);
 		int check_flooding(Client *tmp, t_message &msg);
-
-
-
-		// DEBUG BY CHATGPT
-		void print_all_channels();
-		void list_channels_known();
-
 };
 
 int copy_users(std::string src_name, std::vector<Channel> &channel, size_t _current_channel);
