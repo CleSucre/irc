@@ -47,7 +47,7 @@ int	parse_packet(std::string &packet, int split_position)
 t_message split_packet_message(const std::string &packet)
 {
 	t_message msg;
-	msg.username = packet.substr(2, packet.find('!') - 2);
+	msg.username = packet.substr(1, packet.find('!') - 1);
 	size_t start = packet.find("PRIVMSG");
 	start += 8;
 	size_t end = packet.find(' ', start);
