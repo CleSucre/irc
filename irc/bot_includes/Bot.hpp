@@ -39,7 +39,6 @@ struct ping
 	time_t _last_ping;
 	bool _waiting_pong;
 	std::string tokens;
-	/// TODO: Minimize the PING delay, PONG isn't implemented yet
 	static const int _ping_delay = 10;
 	static const int _pong_waiting_delay = 5;
 };
@@ -92,11 +91,9 @@ class Bot
 		// Stock in channel.hpp for now
 		Channel *getChannelbyName(const std::string &name);
 		Channel *getChannelbyId(size_t id);
-		int copy_users(std::string src_name, std::vector<Channel> &channel, size_t _current_channel);
 		int check_flooding(Client *tmp, t_message &msg);
 };
 
-int copy_users(std::string src_name, std::vector<Channel> &channel, size_t _current_channel);
 int	parse_packet(std::string &packet, int split_position);
 t_message split_packet_message(const std::string &packet);
 
