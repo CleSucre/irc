@@ -18,7 +18,7 @@ void PartCommand::execute() {
 	}
 
 	std::vector<std::string> channels = split(getParameter(1), ',');
-	std::string reason = (_cmd.size() >= 3) ? joinFirstN(_cmd, 2) : " ";
+	std::string reason = getParameter(2);
 
 	for (size_t i = 0; i < channels.size(); ++i) {
 		Channel* channel = server->getChannelByName(channels[i]);
@@ -27,12 +27,12 @@ void PartCommand::execute() {
 			continue;
 		}
 
-		if (channel->getRole(&_client) < 0) {
+		if (channel->getRole(&_client) == guess) {
 			_client.sendMessage(":" + serverName + " " + ERR_NOTONCHANNEL(_client.getNick(), channels[i]));
 			continue;
 		}
 
-		std::string msg = _client.getPrefix() + " PART " + channels[i];
+		std::string msg = _client.getPrefix() + " PART " + channel->getName();
 		if (!reason.empty())
 			msg += " :" + reason;
 

@@ -17,10 +17,8 @@ fi
 
 if [ "$ENABLE_SSL" = "true" ]; then
     echo "Starting IRC server with SSL..."
-    #./ircserv 6667 $IRC_PASSWORD $CERT_FILE $KEY_FILE
+    ./ircserv 6667 $IRC_PASSWORD $CERT_FILE $KEY_FILE
 else
     echo "Starting IRC server without SSL..."
-    #./ircserv 6667 $IRC_PASSWORD
+    ./ircserv 6667 $IRC_PASSWORD
 fi
-
-bash
