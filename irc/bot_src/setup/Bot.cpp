@@ -25,7 +25,7 @@ void Bot::interval_verification(time_t &last_check, time_t &last_check_who, time
 		send(_sock, pingCmd.c_str(), pingCmd.size(), 0);
 		_ping_status._waiting_pong = true;
 	}
-	if (last_check == 0 || current_time - last_check >= check_interval)
+	if (last_check == 0 || current_time - last_check >= flood_interval)
 	{
 
 		std::cout << "Send LIST command" << std::endl; // TODO: Log message

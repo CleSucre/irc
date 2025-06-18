@@ -2,7 +2,7 @@
 
 int Bot::check_flooding(Client *tmp, t_message &msg)
 {
-	if (tmp->getLastMessage() != 0 && tmp->getLastMessage() - std::time(NULL) > check_interval)
+	if (tmp->getLastMessage() != 0 && std::time(NULL) - tmp->getLastMessage() < flood_interval)
 		{
 			int warning_count = tmp->getWarningCount();
 			tmp->setWarningCount(warning_count + 1);
@@ -25,6 +25,10 @@ int Bot::check_flooding(Client *tmp, t_message &msg)
 				usleep(50);
 			}
 		}
+	else if (tmp->getWarningCount() > 1)
+		tmp->setWarningCount(tmp->getWarningCount() - 1);
+	else 
+		tmp->setWarningCount(0);
 	return(0);
 }
 

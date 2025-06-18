@@ -30,6 +30,7 @@
 #define WHO_END "315"
 #define CHANNEL_START "B322"
 
+
 class Channel;
 class Client;
 
@@ -68,7 +69,7 @@ class Bot
 		size_t _current_channel;
 		size_t _channel_known;
 		std::vector<Channel> _channel;
-		static const int	check_interval = 6;
+		static const int	flood_interval = 6;
 		static const int	check_who_interval = 3;
 		static int	_end_signal;
 		ping _ping_status;
