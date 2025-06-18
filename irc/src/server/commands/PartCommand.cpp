@@ -37,6 +37,7 @@ void PartCommand::execute() {
 			msg += " :" + reason;
 
 		channel->broadcast(_client, msg);
+		_client.sendMessage(msg);
 		channel->removeUser(&_client);
 
 		if (channel->isEmpty())

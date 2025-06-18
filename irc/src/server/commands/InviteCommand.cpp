@@ -36,6 +36,7 @@ void InviteCommand::execute() {
 	switch (result) {
 		case 0:
 			toInvite->sendMessage(":" + _client.getNick() + " INVITE " + toInviteNick + " " + channelName);
+			_client.sendMessage(":" + serverName + " " + RPL_INVITING(_client.getNick(), toInviteNick, channelName));
 			break;
 		case 1:
 			_client.sendMessage(":" + serverName + " " + ERR_CHANOPRIVSNEEDED(_client.getNick(), channelName));

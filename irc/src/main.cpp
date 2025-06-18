@@ -38,8 +38,8 @@ void handleSignal(int signal) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        std::cerr << RED << "Usage: " << argv[0] << " <port> [password] [cert.pem] [key.pem]" << RESET << std::endl;
+    if (argc < 3) {
+        std::cerr << RED << "Usage: " << argv[0] << " <port> <password> [cert.pem] [key.pem]" << RESET << std::endl;
         return 1;
     }
 
@@ -47,11 +47,7 @@ int main(int argc, char* argv[]) {
     std::string password;
     try {
         port = parsePort(argv[1]);
-        if (argc > 2) {
-            password = parsePassword(argv[2]);
-        } else {
-            password = DEFAULT_PASSWORD;
-        }
+        password = parsePassword(argv[2]);
     } catch (const std::invalid_argument& e) {
         std::cerr << RED << "Error: " << e.what() << RESET << std::endl;
         return 1;

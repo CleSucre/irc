@@ -10,6 +10,5 @@
 #define PASSWORD_MAX_LENGTH 64
 #define PORT_MIN 1024
 #define PORT_MAX 65535
-#define DEFAULT_PASSWORD ""
 
 #endif // IRC_HPP
