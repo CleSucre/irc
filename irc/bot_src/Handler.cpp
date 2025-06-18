@@ -36,7 +36,7 @@ void Bot::handle_global_data()
 	std::string packet(buffer);
 	if (packet.find(LIST_START) != std::string::npos)
 		list_channels_handler(packet);
-	else if (packet.find(WHO_START) != std::string::npos || packet.find(WHO_END) != std::string::npos)
+	else if (packet.find(WHO_START) != std::string::npos)
 		list_users_handler(packet);
 	else if (packet.find("PRIVMSG") != std::string::npos)
 		message_reception(packet);

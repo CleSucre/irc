@@ -11,9 +11,10 @@ int Bot::check_flooding(Client *tmp, t_message &msg)
 				std::cout << "Flood detected from user: " << tmp->getNick() << ", disconnecting..." << std::endl; // TODO: Debug message
 				std::string kickCmd = "KICK " + msg.channel + " " + tmp->getNick() + " :Flood detected\r\n";
 				send(_sock, kickCmd.c_str(), kickCmd.size(), 0);
-				usleep(50);
+				usleep(100);
 				std::string privmsg = "PRIVMSG " + msg.username + " :You have been kicked for flooding\r\n";
 				send(_sock, privmsg.c_str(), privmsg.size(), 0);
+				usleep(50);
 				return (1);
 			}
 			else
@@ -42,7 +43,19 @@ int Bot::check_flooding(Client *tmp, t_message &msg)
 void Bot::message_reception(std::string &packet)
 {
 	t_message msg = split_packet_message(packet);
+	std::cout << "\n\n----------ANTIFLOOD-----------------" << std::endl; // TODO: Debug message
+	std::cout << "Client already in channel :" << std::endl;
+	Channel *debug_channel_list = getChannelbyId(_current_channel);
+	if (debug_channel_list != NULL)
+	{
+		debug_channel_list->print_client_in_channel(); // TODO: Debug message
+	}
+	else
+	{
+		std::cerr << "Debug channel list is NULL, cannot print clients." << std::endl; // TODO: Debug message
+	}
 	std::cout << "Message received from " << msg.username << " in channel " << msg.channel << ": " << msg.message << std::endl; // TODO: Debug message
+
 	try{
 		_current_channel = find_channel_index(_channel, msg.channel);
 		std::cout << "Current channel index: " << _current_channel << std::endl; // TODO: Debug message
@@ -88,7 +101,10 @@ void Bot::message_reception(std::string &packet)
 	catch (const std::runtime_error &e)
 	{
 		std::cerr << "Error finding channel index in message_reception: " << e.what() << std::endl; //TODO: Debug message
+		std::cerr << "---------------\n\n" << std::endl; // TODO: Debug message
 		return;
 	}
+	std::cerr << "---------------\n\n" << std::endl; // TODO: Debug message
+
 }
 

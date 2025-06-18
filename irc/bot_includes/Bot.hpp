@@ -14,6 +14,8 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <sys/select.h>
+#include <algorithm>
+
 
 
 #include "Client.hpp"

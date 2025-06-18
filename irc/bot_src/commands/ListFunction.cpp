@@ -69,7 +69,7 @@ void Bot::list_channels_handler(std::string &packet)
 {
 	CodeMap code_map;
 	std::vector<std::string> channels;
-	std::string token;
+	std::string token; //TODO: remove this variable if not used
 
 	channels = get_packet_channels(packet);
 	if (channels.size() == 0)
@@ -77,6 +77,7 @@ void Bot::list_channels_handler(std::string &packet)
 		std::cerr << "Error: No channels found in LIST command response." << std::endl; // TODO: Debug message
 		return ;
 	}
+	std::cout << "----LIST CHANNEL HANDLER -----" << std::endl; // TODO: Debug message
 	// Join channels that are not already known
 	for(std::vector<std::string>::iterator it = channels.begin(); it != channels.end(); ++it)
 	{

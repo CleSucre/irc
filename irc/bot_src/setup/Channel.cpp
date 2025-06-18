@@ -188,3 +188,14 @@ void Bot::print_all_channels()
 		std::cout << "----------------------------------------" << std::endl;
 	}
 }
+
+void Channel::print_client_in_channel()
+{
+	std::vector<Client> clients = this->getClientsList();
+	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it) {
+		std::cout << "==Client found " << std::endl;
+		std::cout << "Client Nick: " << it->getNick() << ", Username: " << it->getUsername() 
+				  << ", ID: " << it->getId() << ", Last Message: " << it->getLastMessage() 
+				  << ", Warning Count: " << it->getWarningCount() << std::endl;
+	}
+}
