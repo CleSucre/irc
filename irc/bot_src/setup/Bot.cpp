@@ -18,24 +18,24 @@ void Bot::interval_verification(time_t &last_check, time_t &last_check_who, time
 {
 	if (_ping_status._waiting_pong == false && current_time - _ping_status._last_ping >= _ping_status._ping_delay)
 	{
-		std::cout << "Sending PING command to server..." << std::endl; // TODO: Debug message
+		std::cout << "Sending PING command to server..." << std::endl; // TODO: Log message
 		_ping_status._last_ping = current_time;
 		_ping_status.tokens = current_time;
 		std::string pingCmd = "PING :" + _ping_status.tokens + "\r\n";
 		send(_sock, pingCmd.c_str(), pingCmd.size(), 0);
 		_ping_status._waiting_pong = true;
 	}
-	if (last_check == 0 || current_time - last_check >= check_interval)
+	if (last_check == 0 || current_time - last_check >= flood_interval)
 	{
 
-		std::cout << "Checking for new channels and users..." << std::endl; // TODO: Debug message
+		std::cout << "Send LIST command" << std::endl; // TODO: Log message
 			send(_sock, "LIST\r\n", 6, 0);
 		last_check = current_time;
 		usleep(100);
 	}
 	if (current_time - last_check_who >= check_who_interval)
 	{
-		std::cout << "Checking for users in channels..." << std::endl; // TODO: Debug message
+		std::cout << "Sending WHO command" << std::endl; // TODO: Log message
 		user_command();
 		last_check_who = current_time;
 	}
@@ -88,15 +88,18 @@ void Bot::server_authentification()
     std::string nickCmd = "NICK " + std::string(_nick) + "\r\n";
     std::string userCmd = "USER " + std::string(_username) + " 0 * :" + _username + "\r\n";
 	std::string passCmd = "PASS " + std::string(_password) + "\r\n";
-    std::cout << "NICK command sent" << std::endl;
+    std::cout << "NICK command sent" << std::endl; // Log message
     send(_sock, nickCmd.c_str(), nickCmd.size(), 0);
 	usleep(100);
-    std::cout << "USER command sent" << std::endl;
+    std::cout << "USER command sent" << std::endl; // Log message
     send(_sock, userCmd.c_str(), userCmd.size(), 0);
     usleep(100);
-	std::cout << "PASS command sent" << std::endl;
-	send(_sock, passCmd.c_str(), passCmd.size(), 0);
-    std::cout << "Authentication complete, entering communication loop..." << std::endl;
+	if (passCmd.size() > 7)
+	{
+		std::cout << "PASS command sent" << std::endl; // Log message
+		send(_sock, passCmd.c_str(), passCmd.size(), 0);
+	}
+    std::cout << "Authentication complete, entering communication loop..." << std::endl; // Log message
     communication_loop();
 }
 
@@ -136,7 +139,7 @@ int Bot::socket_creation(int argc, char* argv[])
         std::cerr << "Impossible to connect to " << server << ":" << port << "\n";
         return 1;
     }
-    std::cout << "Connected to " << server << ":" << port << "\n";
+    std::cout << "Connected to " << server << ":" << port << "\n"; // Log message
     server_authentification();
     close(_sock);
     return (0);

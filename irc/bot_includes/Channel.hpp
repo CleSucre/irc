@@ -24,13 +24,6 @@ class Channel
 		void addClient(const Client &client);
 		void setOp(bool op);
 		bool getOp() const;
-
-
-		// Debug functions
-		void print_client_in_channel(const Channel &channel);
-
-
-
 };
 
 size_t find_channel_index(const std::vector<Channel> &channels, const std::string &channel_name);

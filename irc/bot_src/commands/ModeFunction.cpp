@@ -32,12 +32,9 @@ void Bot::operator_modification(std::string &packet)
 	if (channel.empty() || grade.empty() || target.empty())
 	{
 		std::cerr << "Error parsing operator modification packet." << std::endl; //TODO: Debug message
-		std::cerr << "Packet: " << packet << std::endl; // TODO: Debug message
-		std::cerr << "Channel: " << channel << ", Grade: " << grade << ", Target: " << target << std::endl; // TODO: Debug message
 		return;
 	}
 	try{
-		std::cout << "Operator modification packet received for channel: " << channel << ", grade: " << grade << ", target: " << target << std::endl; // TODO: Debug message
 		_current_channel = find_channel_index(_channel, channel);
 		if (_current_channel >= _channel.size() || _channel[_current_channel].getName() != channel)
 		{
@@ -48,7 +45,6 @@ void Bot::operator_modification(std::string &packet)
 		{
 			_channel[_current_channel].setOp(true);
 			std::cout << "Setting bots operator status to true for channel: " << channel << std::endl; // TODO: Debug message
-			std::cout << "Status : " << _channel[_current_channel].getOp() << std::endl; // TODO: Debug message
 
 		}
 		else if (grade == "-o")

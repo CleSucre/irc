@@ -14,6 +14,8 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <sys/select.h>
+#include <algorithm>
+
 
 
 #include "Client.hpp"
@@ -28,6 +30,7 @@
 #define WHO_END "315"
 #define CHANNEL_START "B322"
 
+
 class Channel;
 class Client;
 
@@ -37,9 +40,8 @@ struct ping
 	time_t _last_ping;
 	bool _waiting_pong;
 	std::string tokens;
-	/// TODO: Minimize the PING delay, PONG isn't implemented yet
-	static const int _ping_delay = 10000;
-	static const int _pong_waiting_delay = 5000;
+	static const int _ping_delay = 10;
+	static const int _pong_waiting_delay = 5;
 };
 
 /**
@@ -67,7 +69,7 @@ class Bot
 		size_t _current_channel;
 		size_t _channel_known;
 		std::vector<Channel> _channel;
-		static const int	check_interval = 6;
+		static const int	flood_interval = 6;
 		static const int	check_who_interval = 3;
 		static int	_end_signal;
 		ping _ping_status;
@@ -90,18 +92,9 @@ class Bot
 		// Stock in channel.hpp for now
 		Channel *getChannelbyName(const std::string &name);
 		Channel *getChannelbyId(size_t id);
-		int copy_users(std::string src_name, std::vector<Channel> &channel, size_t _current_channel);
 		int check_flooding(Client *tmp, t_message &msg);
-
-
-
-		// DEBUG BY CHATGPT
-		void print_all_channels();
-		void list_channels_known();
-
 };
 
-int copy_users(std::string src_name, std::vector<Channel> &channel, size_t _current_channel);
 int	parse_packet(std::string &packet, int split_position);
 t_message split_packet_message(const std::string &packet);
 

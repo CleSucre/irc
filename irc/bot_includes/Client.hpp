@@ -8,6 +8,7 @@ class Client
 	private:
 		std::string _nick;
 		std::string _username;
+		size_t _id;
 		size_t _last_message;
 		int _warning_count;
 	public:
