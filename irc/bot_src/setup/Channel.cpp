@@ -40,14 +40,10 @@ std::vector<Client> &Channel::getClientsList() {
  */
 size_t find_channel_index(const std::vector<Channel> &channels, const std::string &channel_name)
 {
-	std::cout << "Searching for channel: " << channel_name << std::endl; // TODO: Debug message
 	for (size_t i = 0; i < channels.size(); ++i)
 	{
 		if (channels[i].getName() == channel_name)
-		{
-			std::cout << "Channel found at index: " << i << std::endl; // TODO: Debug message
 			return (i);
-		}
 	}
 	throw(std::runtime_error("Channel not found"));
 }
@@ -119,7 +115,6 @@ Channel *Bot::getChannelbyId(size_t id) {
 			return &(*it);
 		}
 	}
-	std::cout << "Channel with ID " << id << " not found." << std::endl; // TODO: Debug message
 	return NULL;
 }
 
@@ -130,61 +125,8 @@ Channel *Bot::getChannelbyId(size_t id) {
  * This function adds a Client object to the channel's client list. It can be used to add new clients
  * that join the channel or to update the client list with existing clients.
  */
+//TODO: Check if function used
 void Channel::addClient(const Client &client) {
 	_clients.push_back(client);
 	std::cout << "Client " << client.getNick() << " added to channel " << _name << std::endl; // TODO: Debug message
-}
-
-
-///////////////////DEBUG FUNCTIONS////////////////////
-
-
-/**
- * @brief List all known channels
- * This function prints the names and IDs of all known channels.
- * If no channels are known, it prints a message indicating that no channels are known.
- * @note This function is used for debugging purposes to see the list of known channels.
- */
-void Bot::list_channels_known()
-{
-	std::cout << "Known channels: " << std::endl;
-	if (_channel.empty())
-	{
-		std::cout << "No channels known." << std::endl;
-		return ;
-	}
-	for (size_t i = 0; i < _channel.size(); ++i)
-	{
-		std::cout << "Channel " << i  << ": " << _channel[i].getName() << ", ID: " << _channel[i].getId() << std::endl;
-	}
-}
-
-// DEBUG FUNCTION BY GPT
-void Bot::print_all_channels()
-{
-	std::cout << "Known channels: " << std::endl;
-	if (_channel.empty())
-	{
-		std::cout << "No channels known." << std::endl;
-		return;
-	}
-	for (size_t i = 0; i < _channel.size(); ++i)
-	{
-		std::cout << "Channel " << i + 1 << ": " << _channel[i].getName() << ", ID: " << _channel[i].getId() << std::endl;
-		std::cout << "Clients in channel: " << std::endl;
-		std::vector<Client> &clients = _channel[i].getClientsList();
-		if (clients.empty())
-		{
-			std::cout << "No clients in channel." << std::endl;
-			continue;
-		}
-		for (size_t j = 0; j < clients.size(); ++j)
-		{
-			std::cout << "Client " << j + 1 << ": " << clients[j].getNick() << ", Username: " << clients[j].getUsername() 
-					  << ", ID: " << clients[j].getId() << ", Last message: " << clients[j].getLastMessage() 
-					  << ", Warning count: " << clients[j].getWarningCount() << std::endl;
-		}
-		std::cout << "Operator status: " << (_channel[i].getOp() ? "Yes" : "No") << std::endl;
-		std::cout << "----------------------------------------" << std::endl;
-	}
 }

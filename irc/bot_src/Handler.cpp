@@ -32,11 +32,10 @@ void Bot::handle_global_data()
 		return;
 	}
 	buffer[len] = '\0';
-	std::cout << "Received data: " << buffer << "total length: " << len << std::endl; // TODO: Debug message>
 	std::string packet(buffer);
 	if (packet.find(LIST_START) != std::string::npos)
 		list_channels_handler(packet);
-	else if (packet.find(WHO_START) != std::string::npos || packet.find(WHO_END) != std::string::npos)
+	else if (packet.find(WHO_START) != std::string::npos)
 		list_users_handler(packet);
 	else if (packet.find("PRIVMSG") != std::string::npos)
 		message_reception(packet);
@@ -44,7 +43,7 @@ void Bot::handle_global_data()
 		operator_modification(packet);
 	else if (_ping_status._waiting_pong && packet.find("PONG :" + _ping_status.tokens) != std::string::npos)
 		_ping_status._waiting_pong = false;
-	else // TODO : DEBUG IF
-		std::cout << "Received this packet from the server: " << packet << std::endl; // TODO: Debug message
+	else if (packet.find("433") != std::string::npos)
+		_end_signal = 1;
 }
 

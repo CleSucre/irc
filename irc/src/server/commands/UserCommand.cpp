@@ -16,7 +16,7 @@ void UserCommand::execute() {
 		_client.sendMessage(":" + getServer()->getName() + " " + ERR_NEEDMOREPARAMS(_client.getPrefix(), "USER"));
 		return;
 	}
-	std::string username = getParameter(1);
+	std::string username = getParameter(4);
 
 	if (!_client.setUser(username)) {
 		return;

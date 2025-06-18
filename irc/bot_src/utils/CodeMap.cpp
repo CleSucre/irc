@@ -29,9 +29,7 @@ int CodeMap::getIndex(std::string packet)
 	for(int i = 0; i < _dictionnary_size; i++)
 	{
 		if (packet.find(_entry[i].code_name) != std::string::npos)
-		{
 			return _entry[i].packet_index;
-		}
 	}
 	return -1;
 }
